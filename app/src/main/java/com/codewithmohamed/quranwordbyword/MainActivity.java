@@ -308,13 +308,33 @@ public final class MainActivity extends Activity {
         for (int i = 0; i < 30; i++) labels[i] = "Juz " + (i + 1) + (starts[i] > 0 ? " • Page " + starts[i] : " • Set start page");
         new AlertDialog.Builder(this).setTitle("30 Juz shortcuts").setItems(labels, (d, which) -> {
             if (starts[which] > 0) navigate(starts[which]); else configureJuz(which);
-        }).setNeutralButton("Edit starts", (d, w) -> editJuz())
+        }).setNeutralButton("Set up / edit", (d, w) -> juzSetup())
             .setNegativeButton("Close", null).show();
+    }
+    private void juzSetup() {
+        new AlertDialog.Builder(this).setTitle("Set up Juz shortcuts")
+            .setItems(new String[]{"Use source PDF layout", "Edit individual starts"}, (d, which) -> {
+                if (which == 1) editJuz(); else sourceLayout();
+            }).setNegativeButton("Close", null).show();
+    }
+    private void sourceLayout() {
+        if (count != 960 && count != 962) {
+            error("The source layouts have 960 pages (Juz only) or 962 pages (original with cover). Set starts individually for this PDF.");
+            return;
+        }
+        int first = count == 960 ? 1 : 2;
+        new AlertDialog.Builder(this).setTitle("Use the 32-page Juz layout?")
+            .setMessage("The linked source has 32 pages per Juz. For this " + count + "-page file, Juz 1 starts at PDF page " + first +
+                ". Use this only if your file contains all 30 Juz in order with no extra pages between them. You can edit any shortcut afterward.")
+            .setPositiveButton("Use layout", (d, w) -> {
+                SharedPreferences.Editor editor = prefs.edit();
+                for (int i = 0; i < 30; i++) editor.putInt(documentId + ".juz." + i, first + i * 32);
+                editor.apply(); showJuz();
+            }).setNegativeButton("Cancel", null).show();
     }
     private void editJuz() {
         String[] choices = new String[30]; for (int i = 0; i < 30; i++) choices[i] = "Set Juz " + (i + 1) + " start";
         new AlertDialog.Builder(this).setTitle("Match shortcuts to your PDF")
-            .setMessage("Merged PDFs have different page layouts. Set each Juz to its actual first PDF page; locations are never guessed.")
             .setItems(choices, (d, which) -> configureJuz(which)).setNegativeButton("Close", null).show();
     }
     private void configureJuz(int index) {

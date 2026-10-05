@@ -24,7 +24,9 @@ The debug APK is for personal testing. A Play Store release requires a separate 
 
 **30 Juz** lists all 30 shortcuts. On first use, an unset shortcut asks for its start page (prefilled with the current page). Navigate to the Juz’s first page and save its actual PDF page number. Once configured, the shortcut jumps there immediately. Use **30 Juz → Edit starts** to change it.
 
-**No Juz boundaries are guessed.** A total of 960 pages does not establish where each Juz starts. The supplied source page lists Juz files and an all-in-one PDF, but this project has not verified the exact page map of your merged copy. Enter the boundaries once for that file. Numbering is the PDF’s one-based page position, including any covers, rather than printed verse/page numbers. Configured starts must increase with Juz number.
+**30 Juz → Set up / edit → Use source PDF layout** configures all 30 at once after you confirm the layout. The linked all-in-one source was inspected: its outline starts Juz 1 at page 2 and Juz 2 at page 34, then continues in 32-page blocks through Juz 30 at page 930; that file has 962 pages including a cover and final page. For a 960-page merge containing just those 30 blocks in order, the preset starts at 1, 33, 65, …, 929. For the 962-page original, it starts at 2, 34, 66, …, 930. The app never applies either preset solely from page count: confirm that your merge matches, or set starts individually. All locations remain editable.
+
+Numbering is the PDF’s one-based page position, including any covers, rather than printed verse/page numbers. Configured starts must increase with Juz number.
 
 Source supplied by the user: https://haameem7.wordpress.com/2023/01/07/quran-arabic-english-word-by-word-translation-juz-pdf/
 The PDF is selected locally and is not bundled or uploaded to GitHub.
