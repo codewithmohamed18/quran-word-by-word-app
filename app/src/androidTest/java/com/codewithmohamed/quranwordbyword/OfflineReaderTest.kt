@@ -24,7 +24,7 @@ class OfflineReaderTest {
     private fun openMenu() { compose.onNodeWithContentDescription("Open navigation menu").performClick() }
     private fun waitPage(page: Int) {
         compose.waitUntil(45000) { compose.onAllNodesWithText("Page $page / 960").fetchSemanticsNodes().isNotEmpty() }
-        compose.waitUntil(45000) { compose.onAllNodesWithContentDescription("Bookmark current page").fetchSemanticsNodes()
+        compose.waitUntil(45000) { compose.onAllNodes(hasContentDescription("Bookmark current page") or hasContentDescription("Remove bookmark")).fetchSemanticsNodes()
             .any { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled).not() } }
     }
     @Test fun bundledReaderNavigationAndPersistenceWorkWithoutNetwork() {
