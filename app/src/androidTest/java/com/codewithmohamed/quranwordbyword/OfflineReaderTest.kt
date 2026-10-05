@@ -28,6 +28,18 @@ class OfflineReaderTest {
             .any { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled).not() } }
     }
     @Test fun bundledReaderNavigationAndPersistenceWorkWithoutNetwork() {
+        compose.waitUntil(45000) {
+            compose.runOnIdle {
+                androidx.lifecycle.ViewModelProvider(compose.activity)[ReaderViewModel::class.java].state.value.displayed
+            }
+        }
+        compose.onAllNodesWithContentDescription("Open navigation menu").assertCountEquals(0)
+        screenshot("00-full-screen")
+        compose.onNodeWithTag("pdf-reader").performTouchInput { click() }
+        waitPage(1)
+        compose.onNodeWithTag("pdf-reader").performTouchInput { click() }
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Page 1 / 960").fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithTag("pdf-reader").performTouchInput { click() }
         waitPage(1)
         openMenu(); compose.onNodeWithText("Continue Reading — Page 1").performClick(); waitPage(1)
         screenshot("01-reader")

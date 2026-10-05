@@ -18,9 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.activity.compose.LocalActivity
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,7 +52,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         var screen by rememberSaveable { mutableStateOf("reader") }
         var jump by rememberSaveable { mutableStateOf(false) }
         var more by remember { mutableStateOf(false) }
-        var hideControls by rememberSaveable { mutableStateOf(false) }
+        var hideControls by rememberSaveable { mutableStateOf(true) }
         val view=LocalView.current
         val activity=LocalActivity.current
         SideEffect {
@@ -60,12 +63,20 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
                 }
             }
         }
+        val immersive=screen=="reader" && hideControls && !jump && drawer.isClosed
+        DisposableEffect(activity,view,immersive) {
+            val controller=activity?.window?.let { WindowCompat.getInsetsController(it,view) }
+            controller?.systemBarsBehavior=WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if(immersive) controller?.hide(WindowInsetsCompat.Type.systemBars())
+            else controller?.show(WindowInsetsCompat.Type.systemBars())
+            onDispose { controller?.show(WindowInsetsCompat.Type.systemBars()) }
+        }
         DisposableEffect(view,state.preferences.keepAwake,screen) {
             view.keepScreenOn=state.preferences.keepAwake && screen=="reader"
             onDispose { view.keepScreenOn=false }
         }
         fun openScreen(target: String) { screen=target; scope.launch { drawer.close() } }
-        fun navigate(page: Int) { model.goTo(page); screen="reader"; hideControls=false }
+        fun navigate(page: Int) { model.goTo(page); screen="reader" }
         BackHandler(drawer.isOpen || screen!="reader" || hideControls) {
             when { drawer.isOpen->scope.launch { drawer.close() }; screen!="reader"->screen="reader"; else->hideControls=false }
         }
@@ -96,7 +107,8 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
                 }
             }
         }) {
-            Scaffold(containerColor=MaterialTheme.colorScheme.background,topBar={
+            Scaffold(contentWindowInsets=if(immersive) WindowInsets(0,0,0,0) else ScaffoldDefaults.contentWindowInsets,
+                containerColor=MaterialTheme.colorScheme.background,topBar={
                 if(!hideControls || screen!="reader") TopAppBar(title={
                     Text(when(screen) { "juz"->"Juz (Para)"; "surah"->"Surahs"; "bookmarks"->"Bookmarks";
                         "settings"->"Settings"; "about"->"About"; else->"Qur’an Word by Word" },
@@ -139,7 +151,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
             }) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
                     when(screen) {
-                        "reader" -> ReaderSurface(state,model,onTap={ if(hideControls) hideControls=false })
+                        "reader" -> ReaderSurface(state,model,fullScreen=hideControls,onTap={ hideControls=!hideControls })
                         "juz" -> Chapters(state.config?.juz.orEmpty(),false,state.page,onSelect={navigate(it)})
                         "surah" -> Chapters(state.config?.surahs.orEmpty(),true,state.page,onSelect={navigate(it)})
                         "bookmarks" -> BookmarkScreen(state.preferences.bookmarks,state.config?.juz.orEmpty(),onSelect={navigate(it)},onRemove={page ->
@@ -159,9 +171,9 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
     NavigationDrawerItem(label={Text(label)},icon={Icon(icon,null)},selected=selected,onClick=action,
         modifier=Modifier.padding(horizontal=12.dp))
 }
-@Composable private fun ReaderSurface(state: ReaderState,model: ReaderViewModel,onTap: ()->Unit) {
-    val background=MaterialTheme.colorScheme.background.toArgb()
-    Box(Modifier.fillMaxSize()) {
+@Composable private fun ReaderSurface(state: ReaderState,model: ReaderViewModel,fullScreen: Boolean,onTap: ()->Unit) {
+    val background=Color.White.toArgb()
+    Box(Modifier.fillMaxSize().testTag("pdf-reader").semantics { stateDescription=if(fullScreen) "Full screen" else "Reader controls shown" }) {
         if(state.ready) AndroidView(factory={ context -> PdfPageView(context).apply {
             onDisplayed=model::displayed; onFailure=model::failure; onSwipe={model.goTo(model.state.value.page+it)}
             this.onTap=onTap
@@ -223,7 +235,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
             Switch(checked=prefs.keepAwake,onCheckedChange=model::keepAwake,modifier=Modifier.semantics{contentDescription="Keep screen awake while reading"})
         }
         Spacer(Modifier.height(24.dp)); Text("Reading",style=MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(12.dp)); Text("Pinch or double tap to zoom. Drag to pan when zoomed in. Swipe left or right at fit size to change pages. Fit page restores the full page.")
+        Spacer(Modifier.height(12.dp)); Text("Pinch or double tap to zoom. Drag to pan when zoomed in. Swipe left or right at fit size to change pages. Pages fit the screen width. Tap once to show or hide controls. Fit page resets zoom.")
         Spacer(Modifier.height(16.dp)); Text("Dark mode changes the app controls and background. The original Qur’an page colours remain unchanged.",style=MaterialTheme.typography.bodySmall)
     }
 }
@@ -234,7 +246,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         Spacer(Modifier.height(8.dp)); Text("Arabic–English · 960 pages · 30 Juz · 114 Surahs")
         Spacer(Modifier.height(24.dp)); Text("The complete Qur’an is included on your phone. Reading, bookmarks, progress and settings work offline. No account or advertisements.")
         Spacer(Modifier.height(16.dp)); Text("Source edition: haameem7.wordpress.com, Arabic–English word-by-word Qur’an. Original PDF page content is preserved.")
-        Spacer(Modifier.height(16.dp)); Text("An original cream-and-gold interface. Version 3.0",style=MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(16.dp)); Text("An original cream-and-gold interface. Version 3.1",style=MaterialTheme.typography.labelLarge)
     }
 }
 @Composable private fun PageDialog(page: Int,onDismiss:()->Unit,onGo:(Int)->Unit) {

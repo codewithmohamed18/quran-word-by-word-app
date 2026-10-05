@@ -38,7 +38,7 @@ class PdfPageView(context: Context) : View(context) {
     })
     private val taps = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onDown(e: MotionEvent) = true
-        override fun onSingleTapConfirmed(e: MotionEvent): Boolean { performClick(); onTap(); return true }
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean { performClick(); return true }
         override fun onDoubleTap(e: MotionEvent): Boolean {
             clearTile()
             if (zoom > 1.01f) fit() else {
@@ -70,15 +70,15 @@ class PdfPageView(context: Context) : View(context) {
     }
     fun fit() {
         clearTile(); zoom=1f
-        preview?.let { x=(width-it.width*base())/2; y=(height-it.height*base())/2 }
+        preview?.let { x=(width-it.width*base())/2; y=0f }
         invalidate()
     }
-    private fun base(): Float = preview?.let { min(width.toFloat()/it.width,height.toFloat()/it.height) } ?: 1f
+    private fun base(): Float = preview?.let { width.toFloat()/it.width } ?: 1f
     private fun constrain() {
         preview?.let {
             val w=it.width*base()*zoom; val h=it.height*base()*zoom
             x=if(w<=width) (width-w)/2 else x.coerceIn(width-w,0f)
-            y=if(h<=height) (height-h)/2 else y.coerceIn(height-h,0f)
+            y=if(h<=height) 0f else y.coerceIn(height-h,0f)
         }
     }
     private fun clearTile() { tileGeneration++; tile?.recycle(); tile=null }
@@ -109,7 +109,7 @@ class PdfPageView(context: Context) : View(context) {
             MotionEvent.ACTION_DOWN -> { multi=false; startX=e.x; startY=e.y; lastX=e.x; lastY=e.y }
             MotionEvent.ACTION_POINTER_DOWN -> multi=true
             MotionEvent.ACTION_MOVE -> {
-                if(!pinch.isInProgress && !multi && zoom>1.01f) {
+                if(!pinch.isInProgress && !multi && (zoom>1.01f || (preview?.let { it.height*base()>height } == true))) {
                     clearTile(); x+=e.x-lastX; y+=e.y-lastY; constrain(); invalidate()
                 }
                 lastX=e.x; lastY=e.y
@@ -124,6 +124,6 @@ class PdfPageView(context: Context) : View(context) {
         }
         return true
     }
-    override fun performClick(): Boolean { super.performClick(); return true }
+    override fun performClick(): Boolean { super.performClick(); onTap(); return true }
     fun dispose() { dead=true; generation++; clearTile(); preview?.recycle(); preview=null }
 }
