@@ -139,12 +139,12 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
                 if(screen=="reader" && !hideControls) Surface(tonalElevation=2.dp) {
                     Row(Modifier.fillMaxWidth().navigationBarsPadding().heightIn(min=56.dp),
                         horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                        IconButton(onClick={navigate(state.page-1)},enabled=state.ready && state.page>1) {
-                            Icon(Icons.Default.NavigateBefore,"Previous page")
+                        IconButton(onClick={navigate(state.page+1)},enabled=state.ready && state.page<960) {
+                            Icon(Icons.Default.NavigateBefore,"Next page")
                         }
                         TextButton(onClick={jump=true},enabled=state.ready) { Text("Page ${state.page} / 960",fontWeight=FontWeight.Medium) }
-                        IconButton(onClick={navigate(state.page+1)},enabled=state.ready && state.page<960) {
-                            Icon(Icons.Default.NavigateNext,"Next page")
+                        IconButton(onClick={navigate(state.page-1)},enabled=state.ready && state.page>1) {
+                            Icon(Icons.Default.NavigateNext,"Previous page")
                         }
                     }
                 }
@@ -172,7 +172,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         modifier=Modifier.padding(horizontal=12.dp))
 }
 @Composable private fun ReaderSurface(state: ReaderState,model: ReaderViewModel,fullScreen: Boolean,onTap: ()->Unit) {
-    val background=Color.White.toArgb()
+    val background=MaterialTheme.colorScheme.background.toArgb()
     Box(Modifier.fillMaxSize().testTag("pdf-reader").semantics { stateDescription=if(fullScreen) "Full screen" else "Reader controls shown" }) {
         if(state.ready) AndroidView(factory={ context -> PdfPageView(context).apply {
             onDisplayed=model::displayed; onFailure=model::failure; onSwipe={model.goTo(model.state.value.page+it)}
@@ -235,7 +235,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
             Switch(checked=prefs.keepAwake,onCheckedChange=model::keepAwake,modifier=Modifier.semantics{contentDescription="Keep screen awake while reading"})
         }
         Spacer(Modifier.height(24.dp)); Text("Reading",style=MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(12.dp)); Text("Pinch or double tap to zoom. Drag to pan when zoomed in. Swipe left or right at fit size to change pages. Pages fit the screen width. Tap once to show or hide controls. Fit page resets zoom.")
+        Spacer(Modifier.height(12.dp)); Text("Pinch or double tap to zoom. Drag to pan when zoomed in. Swipe right for the next page and left for the previous page at fit size. Pages fit the available space and stay centered. Tap once to show or hide controls. Fit page resets zoom.")
         Spacer(Modifier.height(16.dp)); Text("Dark mode changes the app controls and background. The original Qur’an page colours remain unchanged.",style=MaterialTheme.typography.bodySmall)
     }
 }
@@ -246,7 +246,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         Spacer(Modifier.height(8.dp)); Text("Arabic–English · 960 pages · 30 Juz · 114 Surahs")
         Spacer(Modifier.height(24.dp)); Text("The complete Qur’an is included on your phone. Reading, bookmarks, progress and settings work offline. No account or advertisements.")
         Spacer(Modifier.height(16.dp)); Text("Source edition: haameem7.wordpress.com, Arabic–English word-by-word Qur’an. Original PDF page content is preserved.")
-        Spacer(Modifier.height(16.dp)); Text("An original cream-and-gold interface. Version 3.1",style=MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(16.dp)); Text("An original cream-and-gold interface. Version 3.2",style=MaterialTheme.typography.labelLarge)
     }
 }
 @Composable private fun PageDialog(page: Int,onDismiss:()->Unit,onGo:(Int)->Unit) {

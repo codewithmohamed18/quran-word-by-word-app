@@ -53,8 +53,14 @@ class OfflineReaderTest {
         compose.onNodeWithContentDescription("Reading options").performClick()
         compose.onNodeWithText("Fit page").performClick()
         compose.onNodeWithContentDescription("Qur’an page 33. Pinch or double tap to zoom. Swipe at fit size to change pages.")
-            .performTouchInput { swipeLeft() }
+            .performTouchInput { swipeRight() }
         waitPage(34)
+        compose.onNodeWithTag("pdf-reader").performTouchInput { swipeLeft() }
+        waitPage(33)
+        compose.onNodeWithContentDescription("Next page").performClick(); waitPage(34)
+        val next=compose.onNodeWithContentDescription("Next page").fetchSemanticsNode().boundsInRoot
+        val previous=compose.onNodeWithContentDescription("Previous page").fetchSemanticsNode().boundsInRoot
+        org.junit.Assert.assertTrue("Next belongs on the left in Arabic reading order",next.center.x<previous.center.x)
         compose.onNodeWithText("Page 34 / 960").performClick()
         compose.onNode(hasSetTextAction()).performTextReplacement("961")
         compose.onNodeWithText("Go",useUnmergedTree=true).performClick()
@@ -84,6 +90,13 @@ class OfflineReaderTest {
             }
         }
         screenshot("05-settings-dark")
+        compose.onNodeWithContentDescription("Back to reader").performClick(); waitPage(848)
+        screenshot("07-reader-dark")
+        compose.onNodeWithTag("pdf-reader").performTouchInput { click() }
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Page 848 / 960").fetchSemanticsNodes().isEmpty() }
+        screenshot("08-fullscreen-dark")
+        compose.onNodeWithTag("pdf-reader").performTouchInput { click() }; waitPage(848)
+        openMenu(); compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithContentDescription("Keep screen awake while reading").performClick()
     }
 }

@@ -70,15 +70,15 @@ class PdfPageView(context: Context) : View(context) {
     }
     fun fit() {
         clearTile(); zoom=1f
-        preview?.let { x=(width-it.width*base())/2; y=0f }
+        preview?.let { x=(width-it.width*base())/2; y=(height-it.height*base())/2 }
         invalidate()
     }
-    private fun base(): Float = preview?.let { width.toFloat()/it.width } ?: 1f
+    private fun base(): Float = preview?.let { min(width.toFloat()/it.width,height.toFloat()/it.height) } ?: 1f
     private fun constrain() {
         preview?.let {
             val w=it.width*base()*zoom; val h=it.height*base()*zoom
             x=if(w<=width) (width-w)/2 else x.coerceIn(width-w,0f)
-            y=if(h<=height) 0f else y.coerceIn(height-h,0f)
+            y=if(h<=height) (height-h)/2 else y.coerceIn(height-h,0f)
         }
     }
     private fun clearTile() { tileGeneration++; tile?.recycle(); tile=null }
@@ -119,7 +119,7 @@ class PdfPageView(context: Context) : View(context) {
             }
             MotionEvent.ACTION_UP -> {
                 val dx=e.x-startX; val dy=e.y-startY
-                if(!multi && zoom<=1.01f && abs(dx)>width*.18f && abs(dy)<abs(dx)*.6f) onSwipe(if(dx<0) 1 else -1)
+                if(!multi && zoom<=1.01f && abs(dx)>width*.18f && abs(dy)<abs(dx)*.6f) onSwipe(if(dx>0) 1 else -1)
                 else requestTile()
                 multi=false
             }

@@ -1,4 +1,4 @@
-# Qur’an Word by Word — 3.1
+# Qur’an Word by Word — 3.2
 
 A Kotlin / Jetpack Compose / Material 3 Android reader with the complete 960-page Arabic–English word-by-word Qur’an bundled. Opens directly to the last-read page. No picker, account, ads, phone download or internet permission. Android 8.0+ (minSdk 26).
 
@@ -10,10 +10,10 @@ This version uses a checked-in **testing-only debug key** so future CI debug APK
 
 ## Read and navigate
 
-- Opens in immersive full screen: Android bars, toolbar and page counter are hidden. Single tap shows/hides controls. Pages fit the full screen width and start at the top; taller pages can be dragged vertically without cropping or stretching. Cream/gold Material 3 controls remain available.
+- Opens in immersive full screen: Android bars, toolbar and page counter are hidden. Single tap shows/hides controls. Pages fit the available space and stay centered without cropping or stretching. The surrounding reading area follows the selected light/dark theme. Cream/gold Material 3 controls remain available.
 - Hamburger drawer: Continue Reading, Juz (Para), Surah, Bookmarks, Go to Page, Settings, About.
 - 30 Juz and all 114 Surahs in Qur’anic order. Surah rows include Arabic and transliterated names. Some short Surahs share the same PDF page.
-- Pinch to zoom up to 6×; double tap to zoom/fit. At fit size, swipe left/right to change pages. At zoom, dragging pans the page.
+- Pinch to zoom up to 6×; double tap to zoom/fit. At fit size, swipe right for the next page and left for the previous page. Next is the left arrow; Previous is the right arrow, following Arabic reading order. At zoom, dragging pans the page.
 - Previous/Next controls and page counter jump dialog. Reading menu includes Fit page and Hide controls; a single tap toggles controls.
 - Bookmarks and last successfully displayed page persist with Preferences DataStore. Bookmarks have their own screen and can be removed from it.
 - Settings: device/light/dark themes and optional keep-screen-awake while the reader is open. PDF page colours remain original in dark mode.
