@@ -51,6 +51,9 @@ jobs:
           api-level: 29
           arch: x86_64
           target: default
+          profile: pixel_2
+          disk-size: 2048M
+          emulator-boot-timeout: 300
           disable-animations: true
           script: |
             adb shell svc wifi disable
