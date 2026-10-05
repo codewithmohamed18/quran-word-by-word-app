@@ -63,7 +63,7 @@ jobs:
           script: |
             adb shell svc wifi disable
             adb shell svc data disable
-            bash ./gradlew --no-daemon connectedDebugAndroidTest
+            bash ./gradlew --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true connectedDebugAndroidTest
             adb pull /sdcard/Android/data/com.codewithmohamed.quranwordbyword/files/screenshots app/build/reports/device-screenshots
       - uses: actions/upload-artifact@v4
         if: always()
