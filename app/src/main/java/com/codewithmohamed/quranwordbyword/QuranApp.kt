@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -49,6 +51,13 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         var more by remember { mutableStateOf(false) }
         var hideControls by rememberSaveable { mutableStateOf(false) }
         val view=LocalView.current
+        val activity=LocalContext.current as android.app.Activity
+        SideEffect {
+            WindowCompat.getInsetsController(activity.window,view).apply {
+                isAppearanceLightStatusBars=!dark
+                isAppearanceLightNavigationBars=!dark
+            }
+        }
         DisposableEffect(view,state.preferences.keepAwake,screen) {
             view.keepScreenOn=state.preferences.keepAwake && screen=="reader"
             onDispose { view.keepScreenOn=false }
@@ -131,7 +140,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
                         "reader" -> ReaderSurface(state,model,onTap={ if(hideControls) hideControls=false })
                         "juz" -> Chapters(state.config?.juz.orEmpty(),false,state.page,onSelect={navigate(it)})
                         "surah" -> Chapters(state.config?.surahs.orEmpty(),true,state.page,onSelect={navigate(it)})
-                        "bookmarks" -> BookmarkScreen(state.preferences.bookmarks,onSelect={navigate(it)},onRemove={page ->
+                        "bookmarks" -> BookmarkScreen(state.preferences.bookmarks,state.config?.juz.orEmpty(),onSelect={navigate(it)},onRemove={page ->
                             // Toggle the requested bookmark independently of the current reading page.
                             model.removeBookmark(page)
                         })
@@ -181,7 +190,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         }
     }
 }
-@Composable private fun BookmarkScreen(saved: Set<Int>,onSelect:(Int)->Unit,onRemove:(Int)->Unit) {
+@Composable private fun BookmarkScreen(saved: Set<Int>,juz: List<Chapter>,onSelect:(Int)->Unit,onRemove:(Int)->Unit) {
     if(saved.isEmpty()) Box(Modifier.fillMaxSize().padding(32.dp),contentAlignment=Alignment.Center) {
         Column(horizontalAlignment=Alignment.CenterHorizontally) {
             Icon(Icons.Default.BookmarkBorder,null,Modifier.size(48.dp),tint=MaterialTheme.colorScheme.primary)
@@ -190,7 +199,7 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         }
     } else LazyColumn(Modifier.fillMaxSize()) {
         items(saved.sorted(),key={it}) { page ->
-            ListItem(headlineContent={ Text("Page $page") },supportingContent={Text("Juz ${1+(page-1)/32}")},
+            ListItem(headlineContent={ Text("Page $page") },supportingContent={Text("Juz ${juz.lastOrNull { it.page <= page }?.number ?: 1}")},
                 leadingContent={Icon(Icons.Default.Bookmark,null,tint=MaterialTheme.colorScheme.primary)},
                 trailingContent={IconButton(onClick={onRemove(page)}) {Icon(Icons.Default.DeleteOutline,"Remove bookmark for page $page")}},
                 modifier=Modifier.clickable {onSelect(page)}.heightIn(min=76.dp))

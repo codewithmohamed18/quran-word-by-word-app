@@ -1,20 +1,17 @@
-# Verification
+# Tests and verification
 
-## Automated
+## Automated build checks
 
-`python scripts/prepare_quran.py` checks the original PDF checksum, all 30 Juz outline destinations, source count (962) and output count (960). Qur’an page content is copied unchanged.
+`./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest`
 
-`./gradlew testDebugUnitTest lintDebug assembleDebug` checks page limits, invalid input, bitmap memory allocation and Android API/resource compatibility.
+Unit tests check page bounds, invalid jump input, bitmap caps and the editable chapter configuration (all 30 Juz / 114 Surahs, names/order/ranges and known starts). The PDF preparation script verifies source SHA-256, original count/outline and final 960-page count. Representative rendered pages were compared with the original and were pixel-identical.
 
-## Phone/emulator acceptance
+## Offline Android device test
 
-- Fresh install in airplane mode: opens page 1 without picker or download; count is 960.
-- ☰ opens the gold/cream drawer; tapping outside or Back closes it.
-- Juz opens the blue chapter panel; test Juz 1 (page 1), 2 (33), 16 (481), 30 (929).
-- Bookmark several pages; list bookmarks; remove one; restart and confirm saved bookmarks and last-read page.
-- Go to 960; invalid page numbers stay in the entry dialog. Previous/Next stop at document boundaries.
-- Pinch, drag, double tap, Fit page, rotate and rapidly navigate. Displayed page and counter must match.
-- Continue reading, Instructions and About work from the drawer. System bars do not overlap controls on Android 15.
-- First-launch low-storage failure gives a recoverable restart message.
+`./gradlew connectedDebugAndroidTest` on an emulator or connected Android device.
 
-A passing build is not a replacement for phone testing of gestures and layout.
+GitHub Actions disables emulator Wi-Fi/data before launching the app. `OfflineReaderTest` opens the included reader, checks Juz 2 → 33 and Ar-Rahmaan → 848, creates a bookmark, recreates the Activity, verifies the same page/bookmark, opens the dedicated Bookmarks screen, and changes dark mode/awake settings. Screenshots are retained for reader, drawer, Surah list, bookmarks and settings.
+
+## Manual follow-up
+
+Check on a physical phone: pinch/double-tap/pan and zoom sharpness, swipe direction and boundaries, invalid jump dialog, full-screen controls restore, rotation during first-copy/render, font sizing, and screen-awake behaviour. A bounded bitmap preview/viewport is held; the 960 pages are never all loaded as bitmaps. Inspect representative Surah destinations, especially starts partway down a page and multiple short Surahs on the same page.
