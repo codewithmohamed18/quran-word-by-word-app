@@ -6,8 +6,8 @@ android {
         applicationId = "com.codewithmohamed.quranwordbyword"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "2.0.0"
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
     }
     compileOptions {
@@ -17,3 +17,11 @@ android {
     lint { abortOnError = true }
 }
 dependencies { testImplementation("junit:junit:4.13.2") }
+
+tasks.matching { it.name == "preBuild" }.configureEach {
+    doFirst {
+        check(file("src/main/assets/quran-960.pdf").isFile) {
+            "Prepare the bundled Qur’an first: python scripts/prepare_quran.py (see README)"
+        }
+    }
+}

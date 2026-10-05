@@ -1,17 +1,15 @@
 package com.codewithmohamed.quranwordbyword;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.graphics.drawable.GradientDrawable;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.pdf.PdfRenderer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
-import android.provider.OpenableColumns;
-import android.database.Cursor;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -20,14 +18,16 @@ import android.widget.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class MainActivity extends Activity {
-    private static final int PICK_PDF = 10;
-    private static final int GREEN = Color.rgb(16, 62, 52);
+    private static final int GREEN = Color.rgb(23, 57, 65);
+    private static final int GOLD = Color.rgb(190, 154, 82);
+    private FrameLayout drawerLayer;
+    private LinearLayout drawer;
+    private boolean drawerOpen;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     // Renderer belongs exclusively to worker; UI never opens or closes a PDF page.
     private PdfRenderer renderer;
@@ -36,7 +36,7 @@ public final class MainActivity extends Activity {
     private PdfPageView pageView;
     private TextView status, documentName, welcome;
     private ProgressBar spinner;
-    private Button previous, next, pageButton, star, juzButton, bookmarksButton, fitButton, openButton;
+    private Button previous, next, pageButton, star, juzButton, bookmarksButton, fitButton;
     private int page = 1, count;
     private String documentId = "";
     private volatile int generation;
@@ -48,9 +48,9 @@ public final class MainActivity extends Activity {
         super.onCreate(state);
         prefs = getSharedPreferences("reader", MODE_PRIVATE);
         buildUi();
-        if (pdfFile().isFile()) reopen();
+        openBundledQuran();
     }
-    private File pdfFile() { return new File(getFilesDir(), "selected.pdf"); }
+    private File pdfFile() { return new File(getFilesDir(), "bundled-quran-960.pdf"); }
     private int dp(int n) { return (int) (n * getResources().getDisplayMetrics().density + .5f); }
     private TextView label(String text, int size, int color) {
         TextView view = new TextView(this); view.setText(text); view.setTextSize(size);
@@ -69,151 +69,146 @@ public final class MainActivity extends Activity {
         row.addView(view, new LinearLayout.LayoutParams(0, dp(52), 1));
     }
     private void buildUi() {
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(246, 243, 235));
-        root.setOnApplyWindowInsetsListener((v, insets) -> {
-            // Android 15 enforces edge-to-edge: keep every control clear of system bars.
+        FrameLayout shell = new FrameLayout(this);
+        shell.setBackgroundColor(Color.rgb(248, 245, 237));
+        shell.setOnApplyWindowInsetsListener((v, insets) -> {
             if (android.os.Build.VERSION.SDK_INT >= 30) {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
                 v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            } else {
-                v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+            } else v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                     insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
-            }
             return insets;
         });
-        TextView title = label(getString(R.string.app_name), 23, Color.WHITE);
-        title.setBackgroundColor(GREEN); title.setPadding(dp(8), dp(15), dp(8), dp(15));
-        root.addView(title, new LinearLayout.LayoutParams(-1, -2));
-        documentName = label("Your Qur’an, always with you", 13, GREEN);
-        documentName.setMaxLines(1); documentName.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        root.addView(documentName, new LinearLayout.LayoutParams(-1, dp(28)));
-        LinearLayout actions = row(root);
-        openButton = button("Open PDF", this::pickPdf); item(actions, openButton);
-        juzButton = button("30 Juz", this::showJuz); item(actions, juzButton);
-        bookmarksButton = button("Saved", this::showBookmarks); item(actions, bookmarksButton);
-        fitButton = button("Fit", () -> pageView.fit()); item(actions, fitButton);
+        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
+        shell.addView(root, new FrameLayout.LayoutParams(-1, -1));
+        LinearLayout toolbar = row(root); toolbar.setBackgroundColor(GREEN);
+        Button menu = button("☰", this::openDrawer); menu.setTextSize(25); menu.setTextColor(Color.WHITE);
+        menu.setBackgroundColor(Color.TRANSPARENT); menu.setContentDescription("Open navigation menu");
+        toolbar.addView(menu, new LinearLayout.LayoutParams(dp(56), dp(60)));
+        LinearLayout heading = new LinearLayout(this); heading.setOrientation(LinearLayout.VERTICAL);
+        toolbar.addView(heading, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView title = label(getString(R.string.app_name), 19, Color.WHITE);
+        heading.addView(title, new LinearLayout.LayoutParams(-1, -2));
+        documentName = label("ARABIC · ENGLISH · OFFLINE", 10, Color.rgb(232, 210, 164));
+        heading.addView(documentName, new LinearLayout.LayoutParams(-1, dp(20)));
+        star = button("☆", this::toggleBookmark); star.setTextSize(28); star.setTextColor(Color.rgb(232, 210, 164));
+        star.setBackgroundColor(Color.TRANSPARENT); star.setContentDescription("Bookmark this page");
+        toolbar.addView(star, new LinearLayout.LayoutParams(dp(56), dp(60)));
         FrameLayout frame = new FrameLayout(this);
         root.addView(frame, new LinearLayout.LayoutParams(-1, 0, 1));
         pageView = new PdfPageView(this); frame.addView(pageView, new FrameLayout.LayoutParams(-1, -1));
-        welcome = label("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\n\nWelcome\n\nSelect your Arabic–English Qur’an PDF.\nA private copy stays on this phone for offline reading.\n\nPinch to zoom • Drag to pan\nDouble tap to zoom or fit", 19, GREEN);
+        welcome = label("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\n\nPreparing your Qur’an…", 22, GREEN);
         welcome.setPadding(dp(24), dp(20), dp(24), dp(20));
         frame.addView(welcome, new FrameLayout.LayoutParams(-1, -1));
         spinner = new ProgressBar(this);
-        FrameLayout.LayoutParams sp = new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.CENTER);
-        frame.addView(spinner, sp); spinner.setVisibility(View.GONE);
-        status = label("No PDF selected", 13, GREEN); root.addView(status, new LinearLayout.LayoutParams(-1, dp(30)));
+        frame.addView(spinner, new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.CENTER));
+        spinner.setVisibility(View.GONE);
+        status = label("Your Qur’an is included", 11, GREEN);
+        root.addView(status, new LinearLayout.LayoutParams(-1, dp(26)));
         LinearLayout navigation = row(root);
-        previous = button("Previous", () -> navigate(page - 1)); item(navigation, previous);
+        previous = button("‹ Previous", () -> navigate(page - 1)); item(navigation, previous);
         pageButton = button("Go to page", this::jump); item(navigation, pageButton);
-        next = button("Next", () -> navigate(page + 1)); item(navigation, next);
-        star = button("☆", this::toggleBookmark); star.setTextSize(26); item(navigation, star);
-        star.setContentDescription("Bookmark this page");
-        setContentView(root); root.requestApplyInsets(); refresh();
+        next = button("Next ›", () -> navigate(page + 1)); item(navigation, next);
+        // Menu controls share the same readiness state as the reader controls.
+        juzButton = button("Juz (chapters)", this::showJuz);
+        bookmarksButton = button("Bookmarks", this::showBookmarks);
+        fitButton = button("Fit page", () -> pageView.fit());
+        buildDrawer(shell);
+        setContentView(shell); shell.requestApplyInsets(); refresh();
+    }
+    private void buildDrawer(FrameLayout shell) {
+        drawerLayer = new FrameLayout(this); drawerLayer.setVisibility(View.GONE);
+        shell.addView(drawerLayer, new FrameLayout.LayoutParams(-1, -1));
+        View shade = new View(this); shade.setBackgroundColor(0x88000000); shade.setOnClickListener(v -> closeDrawer());
+        drawerLayer.addView(shade, new FrameLayout.LayoutParams(-1, -1));
+        drawer = new LinearLayout(this); drawer.setOrientation(LinearLayout.VERTICAL);
+        drawer.setBackgroundColor(Color.rgb(249, 246, 236));
+        drawer.setClickable(true);
+        drawerLayer.addView(drawer, new FrameLayout.LayoutParams(Math.min(dp(320), getResources().getDisplayMetrics().widthPixels - dp(40)), -1, Gravity.START));
+        ScrollView scroll = new ScrollView(this); drawer.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
+        LinearLayout contents = new LinearLayout(this); contents.setOrientation(LinearLayout.VERTICAL); scroll.addView(contents);
+        LinearLayout banner = new LinearLayout(this); banner.setOrientation(LinearLayout.VERTICAL); banner.setGravity(Gravity.CENTER);
+        banner.setPadding(dp(18), dp(28), dp(18), dp(28));
+        banner.setBackground(new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{0xFF6A5129, 0xFFD9BE7E, 0xFF80642F}));
+        contents.addView(banner, new LinearLayout.LayoutParams(-1, dp(208)));
+        TextView arabic = label("بِسْمِ اللَّهِ\nالرَّحْمَٰنِ الرَّحِيمِ", 29, Color.WHITE); banner.addView(arabic);
+        TextView name = label("Qur’an Word by Word", 19, Color.WHITE); name.setPadding(0, dp(16), 0, dp(4)); banner.addView(name);
+        banner.addView(label("Arabic & English · 30 Juz", 12, Color.WHITE));
+        drawerItem(contents, "▤", juzButton, this::showJuz);
+        drawerItem(contents, "★", bookmarksButton, this::showBookmarks);
+        drawerItem(contents, "▶", button("Continue reading", () -> {}), () -> navigate(prefs.getInt(documentId + ".last", 1)));
+        drawerItem(contents, "↗", button("Go to page", () -> {}), this::jump);
+        drawerItem(contents, "⊞", fitButton, () -> pageView.fit());
+        drawerItem(contents, "?", button("Instructions", () -> {}), () -> error("Your 960-page Qur’an is already included. Choose any of the 30 Juz from the menu. Pinch to zoom, drag to pan, double tap or use Fit page. Tap ☆ to bookmark. Your last-read page is saved automatically. All reading works offline."));
+        drawerItem(contents, "i", button("About", () -> {}), () -> error("Qur’an Word by Word\nArabic–English PDF edition\n960 pages · 30 Juz\n\nSource: haameem7.wordpress.com, Arabic–English word-by-word translation. The original page content is preserved. No account or internet connection is needed to read."));
+        TextView footer = label("READ · REFLECT · RETURN", 10, GOLD); footer.setPadding(0, dp(32), 0, dp(20)); contents.addView(footer);
+    }
+    private void drawerItem(LinearLayout contents, String symbol, Button button, Runnable action) {
+        LinearLayout line = new LinearLayout(this); line.setGravity(Gravity.CENTER_VERTICAL); line.setPadding(dp(18), 0, dp(14), 0);
+        TextView icon = label(symbol, 22, Color.WHITE);
+        GradientDrawable background = new GradientDrawable(); background.setColor(GOLD); background.setCornerRadius(dp(5)); icon.setBackground(background);
+        line.addView(icon, new LinearLayout.LayoutParams(dp(32), dp(32)));
+        button.setTextColor(GREEN); button.setTextSize(16); button.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        button.setPadding(dp(14), 0, 0, 0); button.setBackgroundColor(Color.TRANSPARENT);
+        button.setOnClickListener(v -> { closeDrawer(); if (count > 0 && !importing) action.run(); });
+        line.addView(button, new LinearLayout.LayoutParams(0, dp(54), 1));
+        contents.addView(line, new LinearLayout.LayoutParams(-1, dp(54)));
+    }
+    private void openDrawer() {
+        drawerOpen = true; drawerLayer.setVisibility(View.VISIBLE);
+        drawer.setTranslationX(-drawer.getLayoutParams().width); drawer.animate().translationX(0).setDuration(200).start();
+    }
+    private void closeDrawer() {
+        drawerOpen = false; drawer.animate().cancel(); drawerLayer.setVisibility(View.GONE);
+    }
+    @Override public void onBackPressed() {
+        if (drawerOpen) closeDrawer(); else super.onBackPressed();
     }
     private void refresh() {
         boolean ready = count > 0 && !importing;
         previous.setEnabled(ready && page > 1); next.setEnabled(ready && page < count);
         pageButton.setEnabled(ready); juzButton.setEnabled(ready); bookmarksButton.setEnabled(ready);
-        star.setEnabled(ready && rendered); fitButton.setEnabled(ready && rendered); openButton.setEnabled(!importing);
+        star.setEnabled(ready && rendered); fitButton.setEnabled(ready && rendered);
         pageButton.setText(count > 0 ? page + " / " + count : "Go to page");
         boolean marked = bookmarks().contains(Integer.toString(page));
         star.setText(marked ? "★" : "☆");
         star.setContentDescription(marked ? "Remove bookmark for page " + page : "Bookmark page " + page);
     }
-    private void pickPdf() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType("application/pdf");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        try { startActivityForResult(intent, PICK_PDF); }
-        catch (android.content.ActivityNotFoundException e) { error("No document picker is available on this device."); }
-    }
-    @Override protected void onActivityResult(int request, int result, Intent data) {
-        super.onActivityResult(request, result, data);
-        if (request != PICK_PDF || result != RESULT_OK || data == null || data.getData() == null) return;
-        Uri uri = data.getData();
-        try {
-            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        } catch (SecurityException ignored) {
-            // Some providers do not offer persistent grants. The verified private copy still works offline.
-        }
-        importPdf(uri);
-    }
-    private void reopen() {
+    private void openBundledQuran() {
         importing = true; spinner.setVisibility(View.VISIBLE); welcome.setVisibility(View.GONE);
-        status.setText("Opening your Qur’an…"); refresh();
+        status.setText("Preparing your included Qur’an…"); refresh();
         worker.execute(() -> {
+            File temporary = new File(getFilesDir(), "bundled-copy.tmp");
             try {
+                if (!pdfFile().isFile()) {
+                    try (InputStream input = getAssets().open("quran-960.pdf");
+                         FileOutputStream output = new FileOutputStream(temporary)) {
+                        byte[] buffer = new byte[65536]; int n;
+                        while ((n = input.read(buffer)) != -1) {
+                            if (destroyed) throw new IOException("Preparation interrupted");
+                            output.write(buffer, 0, n);
+                        }
+                        output.getFD().sync();
+                    }
+                    Files.move(temporary.toPath(), pdfFile().toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                }
                 closePdf(); openPdf(pdfFile());
                 int total = renderer.getPageCount();
-                String id = prefs.getString("current_id", "local");
+                if (total != 960) throw new IOException("Bundled page count mismatch");
+                String id = "bundled_quran_960_v1";
                 int last = ReaderRules.clamp(prefs.getInt(id + ".last", 1), total);
                 runOnUiThread(() -> {
                     if (destroyed) return;
                     count = total; documentId = id; page = last; importing = false;
-                    documentName.setText(prefs.getString("current_name", "Qur’an PDF")); navigate(page);
-                });
-            } catch (Exception e) { runOnUiThread(() -> openingFailed("The saved PDF could not be opened. Select the PDF again.")); }
-        });
-    }
-    private void importPdf(Uri uri) {
-        importing = true; rendered = false; generation++;
-        welcome.setVisibility(View.GONE); spinner.setVisibility(View.VISIBLE); status.setText("Saving PDF for offline reading…"); refresh();
-        worker.execute(() -> {
-            File temporary = new File(getFilesDir(), "import-" + UUID.randomUUID() + ".pdf");
-            try {
-                String name = "Qur’an PDF";
-                try (Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
-                    if (cursor != null && cursor.moveToFirst()) name = cursor.getString(0);
-                } catch (Exception ignored) { /* Display name is optional. */ }
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                try (InputStream input = getContentResolver().openInputStream(uri);
-                     FileOutputStream output = new FileOutputStream(temporary)) {
-                    if (input == null) throw new IOException("Document unavailable");
-                    byte[] buffer = new byte[65536]; int n;
-                    while ((n = input.read(buffer)) != -1) {
-                        if (destroyed) throw new IOException("Import interrupted");
-                        output.write(buffer, 0, n); digest.update(buffer, 0, n);
-                    }
-                    output.getFD().sync();
-                }
-                int total;
-                // Validate before replacing a working document. Password-protected PDFs are rejected safely.
-                try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(temporary, ParcelFileDescriptor.MODE_READ_ONLY);
-                     PdfRenderer candidate = new PdfRenderer(fd)) {
-                    total = candidate.getPageCount();
-                    if (total < 1) throw new IOException("Empty PDF");
-                    try (PdfRenderer.Page first = candidate.openPage(0)) {
-                        if (first.getWidth() < 1 || first.getHeight() < 1) throw new IOException("Invalid page");
-                    }
-                }
-                if (destroyed) throw new IOException("Import interrupted");
-                Files.move(temporary.toPath(), pdfFile().toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-                closePdf(); openPdf(pdfFile());
-                StringBuilder hex = new StringBuilder();
-                for (byte b : digest.digest()) hex.append(String.format(Locale.ROOT, "%02x", b & 255));
-                String id = hex.toString(), finalName = name;
-                String oldUri = prefs.getString("current_uri", "");
-                prefs.edit().putString("current_id", id).putString("current_name", name)
-                    .putString("current_uri", uri.toString()).commit();
-                if (!oldUri.isEmpty() && !oldUri.equals(uri.toString())) {
-                    try { getContentResolver().releasePersistableUriPermission(Uri.parse(oldUri), Intent.FLAG_GRANT_READ_URI_PERMISSION); }
-                    catch (SecurityException ignored) { /* Already revoked. */ }
-                }
-                int last = ReaderRules.clamp(prefs.getInt(id + ".last", 1), total);
-                runOnUiThread(() -> {
-                    if (destroyed) return;
-                    count = total; documentId = id; page = last; importing = false;
-                    documentName.setText(finalName); navigate(page);
-                    if (total != 960) Toast.makeText(this, "This PDF has " + total + " pages. Shortcuts use its actual page numbers.", Toast.LENGTH_LONG).show();
+                    navigate(page);
                 });
             } catch (Exception e) {
                 temporary.delete();
                 runOnUiThread(() -> {
                     if (destroyed) return;
-                    importing = false;
-                    error("Cannot import this PDF. Select a downloaded, unencrypted PDF and check free space. Your existing reading data is kept.");
-                    if (count > 0) navigate(page); else openingFailed("Choose a readable PDF to begin.");
+                    importing = false; spinner.setVisibility(View.GONE);
+                    welcome.setText("The included Qur’an could not be prepared. Free some storage and restart the app.");
+                    welcome.setVisibility(View.VISIBLE); status.setText("Please restart to retry"); refresh();
                 });
             }
         });
@@ -259,7 +254,7 @@ public final class MainActivity extends Activity {
                 if (bitmap != null) bitmap.recycle();
                 runOnUiThread(() -> {
                     if (destroyed || token != generation) return;
-                    spinner.setVisibility(View.GONE); status.setText("Page could not be rendered. Try another page or reopen the PDF."); refresh();
+                    spinner.setVisibility(View.GONE); status.setText("Page could not be rendered. Try another page or restart the app."); refresh();
                 });
             }
         });
@@ -298,52 +293,34 @@ public final class MainActivity extends Activity {
         new AlertDialog.Builder(this).setTitle("Bookmarks").setItems(labels, (d, which) -> navigate(saved.get(which)))
             .setNegativeButton("Close", null).show();
     }
-    private int[] juzStarts() {
-        int[] starts = new int[30];
-        for (int i = 0; i < 30; i++) starts[i] = prefs.getInt(documentId + ".juz." + i, 0);
-        return starts;
-    }
     private void showJuz() {
-        int[] starts = juzStarts(); String[] labels = new String[30];
-        for (int i = 0; i < 30; i++) labels[i] = "Juz " + (i + 1) + (starts[i] > 0 ? " • Page " + starts[i] : " • Set start page");
-        new AlertDialog.Builder(this).setTitle("30 Juz shortcuts").setItems(labels, (d, which) -> {
-            if (starts[which] > 0) navigate(starts[which]); else configureJuz(which);
-        }).setNeutralButton("Set up / edit", (d, w) -> juzSetup())
-            .setNegativeButton("Close", null).show();
-    }
-    private void juzSetup() {
-        new AlertDialog.Builder(this).setTitle("Set up Juz shortcuts")
-            .setItems(new String[]{"Use source PDF layout", "Edit individual starts"}, (d, which) -> {
-                if (which == 1) editJuz(); else sourceLayout();
-            }).setNegativeButton("Close", null).show();
-    }
-    private void sourceLayout() {
-        if (count != 960 && count != 962) {
-            error("The source layouts have 960 pages (Juz only) or 962 pages (original with cover). Set starts individually for this PDF.");
-            return;
-        }
-        int first = count == 960 ? 1 : 2;
-        new AlertDialog.Builder(this).setTitle("Use the 32-page Juz layout?")
-            .setMessage("The linked source has 32 pages per Juz. For this " + count + "-page file, Juz 1 starts at PDF page " + first +
-                ". Use this only if your file contains all 30 Juz in order with no extra pages between them. You can edit any shortcut afterward.")
-            .setPositiveButton("Use layout", (d, w) -> {
-                SharedPreferences.Editor editor = prefs.edit();
-                for (int i = 0; i < 30; i++) editor.putInt(documentId + ".juz." + i, first + i * 32);
-                editor.apply(); showJuz();
-            }).setNegativeButton("Cancel", null).show();
-    }
-    private void editJuz() {
-        String[] choices = new String[30]; for (int i = 0; i < 30; i++) choices[i] = "Set Juz " + (i + 1) + " start";
-        new AlertDialog.Builder(this).setTitle("Match shortcuts to your PDF")
-            .setItems(choices, (d, which) -> configureJuz(which)).setNegativeButton("Close", null).show();
-    }
-    private void configureJuz(int index) {
-        int existing = juzStarts()[index];
-        pageDialog("Juz " + (index + 1) + " start page", existing > 0 ? existing : page, n -> {
-            int[] starts = juzStarts(); starts[index] = n;
-            if (!ReaderRules.validJuzMap(starts, count)) { error("Juz starts must increase in order. Check the neighbouring shortcuts."); return; }
-            prefs.edit().putInt(documentId + ".juz." + index, n).apply(); navigate(n);
+        Dialog dialog = new Dialog(this);
+        LinearLayout panel = new LinearLayout(this); panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(18), dp(12), dp(18), dp(12)); panel.setBackgroundColor(Color.rgb(48, 96, 188));
+        LinearLayout heading = new LinearLayout(this); heading.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = label("Choose your Juz", 21, Color.WHITE);
+        heading.addView(title, new LinearLayout.LayoutParams(0, dp(54), 1));
+        Button close = button("×", dialog::dismiss); close.setTextSize(28); close.setTextColor(Color.WHITE);
+        close.setBackgroundColor(Color.TRANSPARENT); close.setContentDescription("Close Juz list");
+        heading.addView(close, new LinearLayout.LayoutParams(dp(48), dp(48))); panel.addView(heading);
+        TextView subtitle = label("30 chapters · Arabic & English", 12, 0xFFDCE7FF); panel.addView(subtitle);
+        ListView list = new ListView(this); list.setDivider(new android.graphics.drawable.ColorDrawable(0x335FFFFF)); list.setDividerHeight(dp(1));
+        String[] labels = new String[30];
+        for (int i = 0; i < 30; i++) labels[i] = "Juz " + (i + 1) + "    ·    Page " + (1 + i * 32);
+        list.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, labels) {
+            @Override public View getView(int position, View convert, android.view.ViewGroup parent) {
+                TextView row = (TextView) super.getView(position, convert, parent);
+                row.setTextColor(Color.WHITE); row.setTextSize(16); row.setMinHeight(dp(52));
+                row.setPadding(dp(10), dp(10), dp(10), dp(10)); return row;
+            }
         });
+        list.setOnItemClickListener((parent, view, position, id) -> { dialog.dismiss(); navigate(1 + position * 32); });
+        list.setSelection((page - 1) / 32);
+        panel.addView(list, new LinearLayout.LayoutParams(-1, 0, 1));
+        dialog.setContentView(panel); dialog.show();
+        dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+        dialog.getWindow().setLayout(Math.min(dp(380), getResources().getDisplayMetrics().widthPixels - dp(32)),
+            (int) (getResources().getDisplayMetrics().heightPixels * .78));
     }
     private void error(String message) {
         if (!destroyed) new AlertDialog.Builder(this).setTitle(getString(R.string.app_name)).setMessage(message).setPositiveButton("OK", null).show();
