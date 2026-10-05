@@ -24,7 +24,9 @@ class OfflineReaderTest {
             .any { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled).not() } }
     }
     @Test fun bundledReaderNavigationAndPersistenceWorkWithoutNetwork() {
-        waitPage(1); screenshot("01-reader")
+        waitPage(1)
+        openMenu(); compose.onNodeWithText("Continue Reading — Page 1").performClick(); waitPage(1)
+        screenshot("01-reader")
         compose.onAllNodesWithText("Choose PDF").assertCountEquals(0)
         openMenu(); screenshot("02-drawer")
         compose.onNodeWithText("Juz (Para)").performClick()

@@ -30,7 +30,11 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
     }
-    fun goTo(page: Int) { if(_state.value.ready) _state.update { it.copy(page=page.coerceIn(1,960),displayed=false,error=null) } }
+    fun goTo(page: Int) {
+        if(!_state.value.ready) return
+        val target=page.coerceIn(1,960)
+        _state.update { if(it.page==target) it else it.copy(page=target,displayed=false,error=null) }
+    }
     fun displayed(page: Int) {
         if(page!=_state.value.page) return
         _state.update { it.copy(displayed=true,error=null) }
