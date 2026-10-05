@@ -11,6 +11,10 @@ import java.io.File
 class OfflineReaderTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private fun screenshot(name: String) {
+        compose.waitForIdle()
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        // Surface screenshot capture needs a real rendered frame after Compose test-clock updates.
+        Thread.sleep(350)
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val directory=File(context.getExternalFilesDir(null),"screenshots").apply { mkdirs() }
         val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
@@ -61,6 +65,12 @@ class OfflineReaderTest {
         compose.onNodeWithContentDescription("Back to reader").performClick()
         openMenu(); compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("Dark mode").performClick()
+        compose.waitUntil(10000) {
+            compose.runOnIdle {
+                androidx.lifecycle.ViewModelProvider(compose.activity)[ReaderViewModel::class.java]
+                    .state.value.preferences.theme == "dark"
+            }
+        }
         screenshot("05-settings-dark")
         compose.onNodeWithContentDescription("Keep screen awake while reading").performClick()
     }
