@@ -94,7 +94,10 @@ class PdfPageView(context: Context) : View(context) {
             } catch (_: Exception) { /* Preview stays readable if a sharper viewport cannot render. */ }
         }
     }
-    override fun onSizeChanged(w: Int,h: Int,oldw: Int,oldh: Int) { if(w!=oldw || h!=oldh) loadPreview() }
+    override fun onSizeChanged(w: Int,h: Int,oldw: Int,oldh: Int) {
+        if(w!=oldw || preview==null) loadPreview()
+        else { clearTile(); constrain(); invalidate(); requestTile() }
+    }
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         preview?.let {
