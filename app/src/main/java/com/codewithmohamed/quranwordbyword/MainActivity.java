@@ -178,7 +178,7 @@ public final class MainActivity extends Activity {
         importing = true; spinner.setVisibility(View.VISIBLE); welcome.setVisibility(View.GONE);
         status.setText("Preparing your included Qur’an…"); refresh();
         worker.execute(() -> {
-            File temporary = new File(getFilesDir(), "bundled-copy.tmp");
+            File temporary = new File(getFilesDir(), "bundle-" + UUID.randomUUID() + ".tmp");
             try {
                 if (!pdfFile().isFile()) {
                     try (InputStream input = getAssets().open("quran-960.pdf");
@@ -190,6 +190,7 @@ public final class MainActivity extends Activity {
                         }
                         output.getFD().sync();
                     }
+                    if (destroyed) throw new IOException("Preparation interrupted");
                     Files.move(temporary.toPath(), pdfFile().toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 }
                 closePdf(); openPdf(pdfFile());
@@ -221,11 +222,6 @@ public final class MainActivity extends Activity {
     private void closePdf() {
         if (renderer != null) { renderer.close(); renderer = null; }
         if (descriptor != null) { try { descriptor.close(); } catch (IOException ignored) {} descriptor = null; }
-    }
-    private void openingFailed(String message) {
-        if (destroyed) return;
-        importing = false; spinner.setVisibility(View.GONE);
-        welcome.setText(message); welcome.setVisibility(View.VISIBLE); status.setText("Select PDF to continue"); refresh();
     }
     private void navigate(int target) {
         if (count < 1 || importing) return;
