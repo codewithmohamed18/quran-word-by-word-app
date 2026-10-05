@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.LocalActivity
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
@@ -51,11 +51,13 @@ private val Dark=darkColorScheme(primary=Color(0xFFE1C07C),onPrimary=Color(0xFF3
         var more by remember { mutableStateOf(false) }
         var hideControls by rememberSaveable { mutableStateOf(false) }
         val view=LocalView.current
-        val activity=LocalContext.current as android.app.Activity
+        val activity=LocalActivity.current
         SideEffect {
-            WindowCompat.getInsetsController(activity.window,view).apply {
-                isAppearanceLightStatusBars=!dark
-                isAppearanceLightNavigationBars=!dark
+            activity?.window?.let { window ->
+                WindowCompat.getInsetsController(window,view).apply {
+                    isAppearanceLightStatusBars=!dark
+                    isAppearanceLightNavigationBars=!dark
+                }
             }
         }
         DisposableEffect(view,state.preferences.keepAwake,screen) {
