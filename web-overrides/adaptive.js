@@ -16,7 +16,8 @@ function readerAppearance(){
  if(window.Android&&Android.appearance)Android.appearance(document.body.classList.contains('dark'));
 }
 const adaptivePrefs=applyPrefs;applyPrefs=function(){adaptivePrefs();readerAppearance()};
-const adaptiveRender=render;render=function(){adaptiveRender();readerAppearance();recordReadingPage()};
+let lastReadingPosition=mode+':'+page;
+const adaptiveRender=render;render=function(){adaptiveRender();readerAppearance();recordReadingPage();const key=mode+':'+page;if(key!==lastReadingPosition){const stage=$('pdf-stage');if(stage)stage.scrollTop=0;lastReadingPosition=key}};
 const originalReaderTap=reader.onclick;reader.onclick=e=>{if(prefs.tapControls!==false)originalReaderTap(e)};
 // Keyboard support also works with tablets and external keyboards; follows Arabic page order.
 document.addEventListener('keydown',e=>{if(!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)&&$('sheet').classList.contains('hidden')&&$('drawer').classList.contains('hidden')){if(e.key==='ArrowRight'){e.preventDefault();go(page+1)}else if(e.key==='ArrowLeft'){e.preventDefault();go(page-1)}}});
