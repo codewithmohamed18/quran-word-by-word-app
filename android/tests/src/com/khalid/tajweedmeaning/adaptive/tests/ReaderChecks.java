@@ -52,7 +52,9 @@ public class ReaderChecks extends Instrumentation {
             screenshot("focus-reader");tap("focus-exit");await("!document.body.classList.contains('immersive')",10);
             js("screen('comfort')");tap("comfort-study");
             await("prefs.wordStudy && immersive && document.getElementById('pdf-stage').scrollLeft>0",15);
-            screenshot("word-study");tap("study-next");await("document.getElementById('pdf-stage').scrollTop>0",10);
+            screenshot("word-study");
+            js("window.studyRight=document.getElementById('pdf-stage').scrollLeft");tap("study-next");await("document.getElementById('pdf-stage').scrollLeft<window.studyRight-2",10);
+            tap("study-next");tap("study-next");await("document.getElementById('pdf-stage').scrollTop>0",10);
             swipe(true);await("page===2",15);swipe(false);await("page===1",15);
             js("prefs.swipeAction='pan';applyPrefs()");swipe(true);await("page===1",5);js("prefs.swipeAction='pages';applyPrefs();fullscreen(false);screen('comfort')");tap("comfort-original");
             js("screen('comfort')");tap("comfort-large");await("prefs.layouts.word==='width' && prefs.size===46 && prefs.englishSize===24",10);
