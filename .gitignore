@@ -6,3 +6,6 @@ ios/*.xcworkspace/
 ios/**/xcuserdata/
 .DS_Store
 __pycache__/
+
+android/build/
+android/tests/build/

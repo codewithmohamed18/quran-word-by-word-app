@@ -1,0 +1,16 @@
+/* The native viewport already excludes bars, keyboard and cutouts. */
+:root{--top-bar:62px;--bottom-bar:60px}
+header{height:var(--top-bar);min-height:var(--top-bar);padding:0 4px;gap:0;position:relative;z-index:4}
+header button{width:44px;min-width:44px;min-height:48px;flex:0 0 44px}
+header .title{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:clamp(13px,4vw,17px)}
+header .sub{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:12px;line-height:18px}
+footer{height:var(--bottom-bar);padding:0 8px}
+footer button{min-width:48px;min-height:48px}
+body.pdf-reading #reader,body.fill-reading #reader{top:var(--top-bar);bottom:var(--bottom-bar)}
+body.immersive.pdf-reading #reader,body.immersive.fill-reading #reader{top:0;bottom:0}
+.sheet-head{min-height:62px;flex:0 0 auto}.sheet-head h2{min-width:0;font-size:clamp(16px,5vw,20px)}
+.sheet-head button{flex:0 0 48px}.sheet-content{min-height:0;overscroll-behavior:contain}
+#drawer{max-width:100%;width:min(88vw,340px)}
+.setting{flex-wrap:wrap}.setting label{min-width:130px}.setting select{max-width:100%}
+@media(max-height:450px){:root{--top-bar:54px;--bottom-bar:52px}.drawer-head{padding:16px}.drawer-head .art{font-size:30px}}
+@media(min-width:700px){header .title{font-size:20px}header button{width:52px;flex-basis:52px}.sheet-content{width:100%;max-width:900px;margin:0 auto}.arabic{line-height:2.1}}

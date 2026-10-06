@@ -12,26 +12,68 @@ concurrency:
 jobs:
   android:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify exact supplied APK and extract offline content
-        run: python scripts/prepare.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android build tools
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Prepare losslessly optimized offline content
+        run: |
+          pip install PyMuPDF==1.26.6
+          python scripts/prepare-v18.py
+      - name: Build adaptive APK and device checks from source
+        run: |
+          bash scripts/build-android.sh
+          bash scripts/build-android-tests.sh
+          cd dist
+          sha256sum *.apk > SHA256SUMS.txt
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Make room for the emulator
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$ANDROID_HOME/ndk"
+      - name: Offline cutout, compact phone, landscape and tablet checks
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_7_pro
+          disk-size: 4096M
+          disable-animations: true
+          script: bash scripts/test-android.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-checks
+          path: dist/android-checks
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: android
           path: |
             dist/*.apk
             dist/SHA256SUMS.txt
+            dist/quality-and-size.json
   ios:
     runs-on: macos-15
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Extract the same offline content
-        run: python3 scripts/prepare.py
+        run: |
+          python3 -m pip install --break-system-packages PyMuPDF==1.26.6
+          python3 scripts/prepare-v18.py
       - name: Generate Xcode project
         run: |
           brew install xcodegen
@@ -92,12 +134,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          TAG="v1.7-${GITHUB_RUN_NUMBER}"
+          TAG="v1.8-${GITHUB_RUN_NUMBER}"
           cat > release-notes.md <<'EOF'
-          Android: download Tajweed-and-Meaning-v1.7-Soft-Cream.apk. This is the exact supplied signed APK, unchanged.
+          Android: download Tajweed-and-Meaning-v1.8-Adaptive.apk for the new reader. Its toolbar respects status bars, camera cutouts and navigation areas. Reading modes have a dedicated large button. Tested offline on Android 15 with cutout, compact phone, landscape and tablet display profiles.
+
+          v1.8 installs alongside v1.7 because the original signing key is unavailable. Existing v1.7 bookmarks remain in that app; v1.8 starts with separate reading state. The original v1.7 APK is retained unchanged here and in release v1.7-1.
+
+          PDF optimization is lossless: original image streams are unchanged and sampled rendered pages are pixel-identical. APK size savings are modest (about 1 MB), but v1.8 reads bundled PDFs directly without copying about 185 MB into private storage. Both complete PDFs remain offline.
 
           iPhone/iPad: the UNSIGNED IPA needs signing with your own Apple account before installation. It is not a direct install download. The Simulator ZIP runs in Xcode's iOS Simulator, not on a phone. If Apple signing secrets are configured, a separate signed IPA is included and works only for devices allowed by that provisioning profile.
 
           For general public iPhone installation, distribute through TestFlight or the App Store using an Apple Developer account. The complete iOS source is in this repository.
           EOF
-          gh release create "$TAG" downloads/* --target "$GITHUB_SHA" --title 'Tajweed & Meaning 1.7 — Android and iOS' --notes-file release-notes.md --latest
+          gh release create "$TAG" downloads/* --target "$GITHUB_SHA" --title 'Tajweed & Meaning 1.8 — Adaptive reader' --notes-file release-notes.md --latest

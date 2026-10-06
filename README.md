@@ -1,52 +1,42 @@
-# Tajweed & Meaning — supplied Soft Cream v1.7
+# Tajweed & Meaning — adaptive v1.8
 
-This repository replaces the previous Qur’an Word by Word project with the supplied **Tajweed-and-Meaning-v1.7-Soft-Cream.apk** and an iOS port of its complete offline reader.
+[Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
-## Downloads
+## What changed in v1.8
 
-Open [Releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/latest).
+- Native safe-area layout excludes Android status bars, display cutouts, navigation bars and the keyboard. Fullscreen retains cutout protection.
+- Dedicated Reading modes button, large toolbar targets, responsive phone/tablet and landscape controls.
+- Original three offline reading modes, Arabic page direction, themes, bookmarks and navigation retained.
+- Lossless PDF cleanup preserves every original compressed image stream. Page sizes/rotation are verified, and first/middle/last page raster comparisons must match exactly.
+- Android renders seekable PDF assets directly from the APK through a storage proxy: no extra full-size PDF copies in private storage. The APK itself remains large because it contains two complete high-quality scanned PDFs. Lossless cleanup saves about 1.1 MB; installed storage saves roughly another 185 MB compared with copying both PDFs.
 
-- **Android:** install the APK. It is the exact uploaded, signed v1.7 file, not a reconstructed APK. SHA-256: `5550e1c06b7843f8f4bbd27314c743201b4ce2e05e17878fc724e9991070c497`.
-- **iOS unsigned IPA:** a real iPhone/iPad build, but it must be signed with an Apple account before installation. Downloading it alone does not install an app.
-- **iOS Simulator ZIP:** open using Xcode's Simulator; it does not run on an iPhone.
-- **Signed iOS IPA:** generated only when the repository's Apple signing secrets are configured. An Ad Hoc IPA installs only on devices registered in its provisioning profile.
+**Installation:** v1.8 uses a separate application ID and installs alongside v1.7. The supplied APK's signing key/source were not provided, so this is not an in-place update. Existing v1.7 bookmarks stay in v1.7; v1.8 starts its own state. Future v1.8 debug builds use the checked-in debug certificate; it is for testing, not a production signing secret.
 
-Public iPhone distribution requires TestFlight or the App Store and an Apple Developer account. GitHub cannot bypass Apple's signing and device rules.
+## Android source and build
 
-This repository must be **public** for anyone to access its downloads. If it is private, the owner and authorized collaborators can access them. Change visibility at Settings → General → Danger Zone → Change repository visibility. No signing keys are committed here.
+Android source is in `android/src/main`. It uses Android's native WebView and PdfRenderer (Android 8 / API 26 or newer), with no network or storage permission. `web-overrides` contains the small responsive additions to the supplied app's own HTML/assets. It retains the original supplied app's title and content.
 
-## Reader
+Install JDK 17, Python 3, Android SDK platform 35 and build-tools 35.0.0, set `ANDROID_HOME`, then run:
 
-All three supplied modes and their content are retained: original Arabic-English word-by-word pages with Soft Cream theme, colour Tajweed with Hilali–Khan meanings, and the original 13-line colour-coded Tajweed Mushaf. The supplied interface includes Juz/Surah navigation, search, bookmarks, reading history, last page, dark mode, full-screen display, page animations and right-to-left page turns. Content is bundled and reading does not need internet.
+```sh
+pip install PyMuPDF==1.26.6
+python scripts/prepare-v18.py
+bash scripts/build-android.sh
+```
 
-The Android download is unmodified. Its application identifier is `com.khalid.tajweedmeaning`; it is a separate app from the former `com.codewithmohamed.quranwordbyword`, so old app bookmarks are not automatically migrated. The original Android native source and signing key were not included with the APK; this repository does not claim to recover them.
+The output is `dist/Tajweed-and-Meaning-v1.8-Adaptive.apk`. This complete repository can be opened as a folder in Android Studio; the platform build script is the authoritative build and does not require Gradle dependencies.
 
-The iOS app uses the exact embedded HTML, JavaScript, text, fonts and PDFs, plus a Swift/UIKit/WKWebView bridge and Core Graphics PDF renderer. iOS keeps its own reading state in the persistent WebKit store. The Android volume-button setting has no effect on iOS because iOS does not provide a supported app API to repurpose its volume buttons.
+Every push to main builds Android and iOS in GitHub Actions. Android instrumentation uses actual pointer taps to verify modes/bookmarks, rendered pages from both bundled PDFs, bookmark persistence, minimum touch targets, native safe areas and absence of duplicate PDFs. It runs with Wi-Fi/data disabled on cutout, compact phone, landscape and tablet Android 15 display profiles. Screenshots and test logs are uploaded as `android-checks` artifacts. Emulator checks are representative, not a claim of testing every physical phone.
 
-## Build iOS on a Mac
+## iOS
 
-1. Install Xcode and XcodeGen (`brew install xcodegen`).
-2. Run `python3 scripts/prepare.py` from the repository root.
-3. Run `cd ios && xcodegen generate`.
-4. Open `ios/TajweedMeaning.xcodeproj`, choose the TajweedMeaning scheme and an iPhone Simulator, then Run.
-5. For your own iPhone, select your Apple development team and a unique bundle identifier in Xcode's Signing & Capabilities.
+The UIKit/WKWebView port is in `ios/`, with XcodeGen project configuration and native Core Graphics PDF rendering. Its native view already follows safe-area constraints; it receives the same responsive controls and lossless assets in v1.8. The build runs iPhone simulator UI tests.
 
-`scripts/prepare.py` reconstructs the supplied APK from binary parts and checks its full checksum before extracting the offline assets. Parts keep every Git blob comfortably below GitHub's file limits. They are not downloads from third-party servers, and no runtime network fetch is needed.
+An **UNSIGNED IPA cannot be installed directly** on an iPhone. Sign locally or configure Apple certificate/provisioning secrets; the optional signed export works only for provisioned devices. Public iPhone distribution requires TestFlight or App Store distribution. The simulator ZIP is for Xcode's simulator only.
 
-## GitHub Actions
+## Original supplied app archive
 
-Every main-branch push verifies the exact Android APK, builds an unsigned iOS device app, runs iPhone Simulator tests, and publishes both platforms to GitHub Releases after checks pass. Test results are attached to the workflow run. The Xcode project is generated from the checked-in `ios/project.yml`.
+The exact supplied v1.7 APK is stored in `payload/` as binary chunks because of repository size limits. `payload-manifest.json` records its checksum and asset hashes. `scripts/prepare.py` reconstructs and verifies it before extraction. These archived bytes are never changed by the adaptive build. The original APK is included alongside v1.8 in releases.
 
-To enable a signed Ad Hoc iOS IPA, add repository Actions secrets:
+The repository is currently private. Downloads require repository access until its owner makes it public. No advertisements, login, file picker or online PDF download are added.
 
-| Secret | Value |
-| --- | --- |
-| `APPLE_CERTIFICATE_P12_BASE64` | Base64-encoded Apple Distribution certificate and private key (.p12) |
-| `APPLE_CERTIFICATE_PASSWORD` | Password protecting that .p12 |
-| `APPLE_PROVISIONING_PROFILE_BASE64` | Base64-encoded Ad Hoc provisioning profile matching `com.codewithmohamed18.tajweedmeaning` and including the intended devices |
-
-Certificates are imported into a temporary CI keychain and removed afterward. Do not put them in a commit or issue. These credentials are not needed for simulator or unsigned builds.
-
-## Attribution
-
-The APK's `SOURCE-LICENSE.txt`, source acknowledgements, fonts, Qur’an data and translation notices are preserved in the extracted bundle and About screen. The embedded MIT attribution credits Abubakr Elmallah. Content provenance is described in the supplied app's About screen; no new Qur’an text or translation is substituted.
