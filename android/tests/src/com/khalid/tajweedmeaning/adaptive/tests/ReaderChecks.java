@@ -60,11 +60,13 @@ public class ReaderChecks extends Instrumentation {
     private void checkButton(String id)throws Exception{if(!"true".equals(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();return r.width>=44 && r.height>=44 && r.left>=0 && r.right<=innerWidth+1 && r.top>=0 && r.bottom<=innerHeight+1})()")))throw new AssertionError("Inaccessible toolbar control: "+id);}
     private void tap(String id)throws Exception{
         js("document.getElementById('"+id+"').scrollIntoView({block:'nearest'})");syncFrame();waitForIdleSync();
-        JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2,innerWidth]})()"));
+        JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();let head=document.querySelector('#sheet:not(.hidden) .sheet-head');let top=Math.max(r.top,head?head.getBoundingClientRect().bottom:0),bottom=Math.min(r.bottom,innerHeight);return [r.left+r.width/2,(top+bottom)/2,innerWidth]})()"));
         int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
         float scale=(float)(width[0]/p.getDouble(2));float x=location[0]+(float)p.getDouble(0)*scale,y=location[1]+(float)p.getDouble(1)*scale;
-        long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0),up=MotionEvent.obtain(now,now+80,MotionEvent.ACTION_UP,x,y,0);
-        sendPointerSync(down);sendPointerSync(up);down.recycle();up.recycle();waitForIdleSync();Thread.sleep(200);
+        long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0);
+        sendPointerSync(down);Thread.sleep(100);
+        MotionEvent up=MotionEvent.obtain(now,SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,x,y,0);
+        sendPointerSync(up);down.recycle();up.recycle();waitForIdleSync();Thread.sleep(400);
     }
     private boolean hasPdf(File directory){File[] files=directory.listFiles();if(files!=null)for(File f:files){if(f.isDirectory()?hasPdf(f):f.getName().endsWith(".pdf"))return true;}return false;}
     private long size(File directory){long total=0;File[] files=directory.listFiles();if(files!=null)for(File f:files)total+=f.isDirectory()?size(f):f.length();return total;}
