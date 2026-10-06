@@ -1,11 +1,20 @@
-# Tajweed & Meaning — adaptive v1.8
+# Tajweed & Meaning — v1.8.1 reader update
 
 [Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
-## What changed in v1.8
+## What changed in v1.8.1
+
+- Restores v1.7 full-page PDF fill in all orientations by default. Arabic and English text sizes in mode 2 remain the original readable sizes; no automatic shrinking.
+- Four PDF layouts, saved independently for word-by-word and plain: v1.7 full page, original proportions, fit width with vertical scrolling, and crop to fill. Crop can hide edges; use fit width when preserving page shape with larger text matters.
+- Standard compact safe-area toolbar; optional larger controls. Tap-to-hide controls can be disabled. External keyboard right arrow advances, left arrow goes back, following Arabic page order.
+- Bookmark notes, page progress, page dimmer, Arabic/English line spacing, daily page goal and local reading statistics. Statistics count unique pages per mode/day and foreground reading time, excluding menus/background time.
+- Offline copy/paste backup and validated restore for bookmarks, notes, settings, last pages and statistics. Reset display settings keeps reading data. Backups from the separate v1.7 app are not automatically accessible.
+- Android version code 19 updates an existing adaptive v1.8 installation; iOS marketing version 1.8.1/build 19.
+
+## Existing v1.8 improvements
 
 - Native safe-area layout excludes Android status bars, display cutouts, navigation bars and the keyboard. Fullscreen retains cutout protection.
-- Dedicated Reading modes button, large toolbar targets, responsive phone/tablet and landscape controls. Landscape preserves the scanned page proportions; pinch zoom remains available.
+- Dedicated Reading modes button, large toolbar targets, responsive phone/tablet and landscape controls. The compact toolbar preserves reading space; pinch zoom remains available.
 - Original three offline reading modes, Arabic page direction, themes, bookmarks and navigation retained.
 - Lossless PDF cleanup preserves every original compressed image stream. Page sizes/rotation are verified, and first/middle/last page raster comparisons must match exactly.
 - Android renders seekable PDF assets directly from the APK through a storage proxy: no extra full-size PDF copies in private storage. The APK itself remains large because it contains two complete high-quality scanned PDFs. Lossless cleanup saves about 1.1 MB; installed storage saves roughly another 185 MB compared with copying both PDFs.

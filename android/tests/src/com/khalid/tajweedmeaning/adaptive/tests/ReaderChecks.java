@@ -32,11 +32,24 @@ public class ReaderChecks extends Instrumentation {
             });
             if(geometryError[0]!=null)throw new AssertionError(geometryError[0]);
             for(String id:new String[]{"menu","modes-button","bookmark","full","next","previous"})checkButton(id);
+            await("document.body.dataset.pdfLayout==='fill' && getComputedStyle(document.getElementById('pdf-image')).objectFit==='fill'",10);
+            await("Math.abs(document.getElementById('reader').getBoundingClientRect().top-document.querySelector('header').getBoundingClientRect().bottom)<2 && document.querySelector('header').getBoundingClientRect().height<=52",10);
             screenshot("word-reader");
+            tap("menu");js("document.querySelector('[data-screen=settings]').id='settings-link'");tap("settings-link");
+            await("!!document.getElementById('page-brightness') && document.getElementById('pdf-fit').options.length===4",10);
+            for(String layout:new String[]{"proportions","width","cover","fill"}){
+                js("document.getElementById('pdf-fit').value='"+layout+"';document.getElementById('pdf-fit').dispatchEvent(new Event('change'))");
+                await("document.body.dataset.pdfLayout==='"+layout+"'",5);
+            }
+            tap("large-controls");await("document.querySelector('header').getBoundingClientRect().height===64",5);
+            tap("large-controls");await("document.querySelector('header').getBoundingClientRect().height===52",5);
+            js("closePanels()");
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden') && !!document.getElementById('plain-mode')",10);
             screenshot("modes");
             // Pick the large text mode first. Tests its responsive layout before requesting the second bundled PDF.
             tap("tajweed-mode");await("document.body.classList.contains('fill-reading')",15);
+            await("parseFloat(getComputedStyle(document.querySelector('.arabic')).fontSize)>=36 && parseFloat(getComputedStyle(document.querySelector('.translation')).fontSize)>=20",10);
+            screenshot("tajweed-reader");
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden')",10);tap("plain-mode");
             await("mode==='plain'",10);
             await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
@@ -46,11 +59,18 @@ public class ReaderChecks extends Instrumentation {
             runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
             await("document.getElementById('bookmark') && document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",30);
             await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
+            await("document.body.dataset.pdfLayout==='fill' && prefs.layouts.word==='fill'",10);
             screenshot("reader");
+            js("screen('note');document.getElementById('note-text').value='Remember this page'");tap("save-note");
+            await("load('tm-bookmark-notes',{})['plain:'+page]==='Remember this page'",10);
+            js("screen('stats')");await("document.body.innerText.includes('Unique pages today')",10);
+            js("screen('backup')");await("JSON.parse(document.getElementById('backup-text').value).data['tm-bookmark-notes']['plain:'+page]==='Remember this page'",10);
+            js("document.getElementById('backup-text').value='{}'");tap("restore-backup");await("document.getElementById('backup-status').textContent.includes('not restored') && marks.includes(page)",10);
+            js("closePanels()");
             if(hasPdf(getTargetContext().getFilesDir())||hasPdf(getTargetContext().getCacheDir()))throw new AssertionError("Unexpected PDF copy in private storage");
             if(size(getTargetContext().getFilesDir())>2_000_000)throw new AssertionError("Unexpected full PDF copy in private files");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
-            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, no PDF copies\n");
+            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
         }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }

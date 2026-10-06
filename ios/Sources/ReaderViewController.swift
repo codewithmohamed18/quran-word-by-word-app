@@ -19,8 +19,7 @@ final class ReaderViewController: UIViewController, WKScriptMessageHandler, WKNa
           const send = (method,value) => window.webkit.messageHandlers.native.postMessage({method,value});
           window.Android = {
             pdfPage:n=>send('word',n), plainPage:n=>send('plain',n),
-            awake:v=>send('awake',v), fullscreen:v=>send('fullscreen',v),
-            volumeKeys:v=>{}
+            awake:v=>send('awake',v), fullscreen:v=>send('fullscreen',v)
           };
           document.addEventListener('DOMContentLoaded',()=>{
             const update=()=>send('theme',document.body.classList.contains('dark'));
