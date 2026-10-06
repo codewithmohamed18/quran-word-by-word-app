@@ -20,14 +20,16 @@ public class ReaderChecks extends Instrumentation {
             runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
             await("!!document.getElementById('modes-button')",30);
             await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
+            final String[] geometryError=new String[1];
             runOnMainSync(()->{
                 WindowInsets insets=activity.getWindow().getDecorView().getRootWindowInsets();
                 android.graphics.Insets safe=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());
-                if(profile.equals("pixel-cutout") && insets.getDisplayCutout()==null)throw new AssertionError("Cutout test profile did not provide a display cutout");
+                if(profile.equals("pixel-cutout") && insets.getDisplayCutout()==null)geometryError[0]="Cutout test profile did not provide a display cutout";
                 int[] location=new int[2];web.getLocationOnScreen(location);
-                if(location[0]<safe.left||location[1]<safe.top)throw new AssertionError("WebView overlaps system bars/cutout");
-                if(web.getHeight()>activity.getWindow().getDecorView().getHeight()-safe.top-safe.bottom)throw new AssertionError("WebView overlaps bottom navigation");
+                if(location[0]<safe.left||location[1]<safe.top)geometryError[0]="WebView overlaps system bars/cutout";
+                if(web.getHeight()>activity.getWindow().getDecorView().getHeight()-safe.top-safe.bottom)geometryError[0]="WebView overlaps bottom navigation";
             });
+            if(geometryError[0]!=null)throw new AssertionError(geometryError[0]);
             for(String id:new String[]{"menu","modes-button","bookmark","full","next","previous"})checkButton(id);
             screenshot("word-reader");
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden') && !!document.getElementById('plain-mode')",10);

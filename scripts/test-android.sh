@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 mkdir -p dist/android-checks
+trap 'adb logcat -d > dist/android-checks/device-logcat.txt || true' EXIT
+FAILURES=0
 adb install -r dist/Tajweed-and-Meaning-v1.8-Adaptive.apk
 adb install -r android/tests/build/reader-tests.apk
 # The stock Quickstep launcher can ANR when wm density is changed repeatedly.
@@ -16,11 +18,13 @@ run_case() {
   adb shell am force-stop com.khalid.tajweedmeaning.adaptive
   # Each profile starts from word-by-word mode so both PDF renderers are exercised.
   adb shell pm clear com.khalid.tajweedmeaning.adaptive >/dev/null
-  timeout 240s adb shell am instrument -w -e profile "$profile" com.khalid.tajweedmeaning.adaptive.tests/com.khalid.tajweedmeaning.adaptive.tests.ReaderChecks | tee "dist/android-checks/$profile.txt"
-  adb pull /sdcard/Android/data/com.khalid.tajweedmeaning.adaptive/files/checks dist/android-checks/ >/dev/null
+  if ! timeout 240s adb shell am instrument -w -e profile "$profile" com.khalid.tajweedmeaning.adaptive.tests/com.khalid.tajweedmeaning.adaptive.tests.ReaderChecks | tee "dist/android-checks/$profile.txt"; then
+    FAILURES=$((FAILURES+1))
+  fi
+  adb pull /sdcard/Android/data/com.khalid.tajweedmeaning.adaptive/files/checks dist/android-checks/ >/dev/null || true
   if ! grep -q 'PASS:' "dist/android-checks/$profile.txt"; then
     adb logcat -d -s AndroidRuntime System.err chromium > "dist/android-checks/$profile-crash.txt"
-    exit 1
+    FAILURES=$((FAILURES+1))
   fi
 }
 adb shell wm size 1080x2400
@@ -37,3 +41,5 @@ adb shell settings put system user_rotation 0
 adb shell wm size 1600x2560
 adb shell wm density 240
 run_case tablet
+
+if [ "$FAILURES" -gt 0 ]; then exit 1; fi
