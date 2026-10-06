@@ -60,7 +60,6 @@ document.body.append(focusTop,focusBottom);$('focus-menu').onclick=drawer;$('foc
 const guide=document.createElement('div');guide.id='reading-guide';reader.appendChild(guide);
 const comfortAppearance=readerAppearance;readerAppearance=function(){comfortAppearance();document.body.classList.toggle('hide-focus-tools',prefs.focusTools===false);document.body.classList.toggle('show-guide',!!prefs.guide);document.documentElement.style.setProperty('--guide-position',clamp(prefs.guidePosition,10,90,50)+'%');document.documentElement.style.setProperty('--page-contrast',clamp(prefs.contrast,90,140,100)/100);document.documentElement.style.setProperty('--page-warmth',clamp(prefs.warmth,0,30,0)/100);const bounds=reader.getBoundingClientRect();guide.style.position='fixed';guide.style.top=(bounds.top+bounds.height*clamp(prefs.guidePosition,10,90,50)/100)+'px';guide.style.left=bounds.left+'px';guide.style.right=(innerWidth-bounds.right)+'px';$('focus-page').textContent=page+' / '+maxPages();$('focus-next').disabled=page===maxPages();$('focus-previous').disabled=page===minPage();$('focus-bookmark').textContent=marks.includes(page)?'★':'☆';$('focus-bookmark').setAttribute('aria-label',marks.includes(page)?'Remove bookmark in focus view':'Bookmark in focus view')};
 const focusBookmark=updateBookmark;updateBookmark=function(){focusBookmark();$('focus-bookmark').textContent=marks.includes(page)?'★':'☆';$('focus-bookmark').setAttribute('aria-label',marks.includes(page)?'Remove bookmark in focus view':'Bookmark in focus view')};
-reader.addEventListener('touchend',e=>{if(prefs.swipes===false&&touch){const moved=e.changedTouches.length&&Math.abs(e.changedTouches[0].clientX-touch.x)>15;if(moved)suppressClickUntil=Date.now()+500;touch=null;e.stopImmediatePropagation()}},{capture:true,passive:true});
 const comfortDrawer=drawer;drawer=function(){comfortDrawer();const b=document.createElement('button');b.className='drawer-row';b.innerHTML='<span class="icon">☼</span>Reading comfort';b.onclick=()=>screen('comfort');$('drawer').querySelector('.drawer-bottom').before(b)};$('menu').onclick=drawer;$('focus-menu').onclick=drawer;
 function rangeSetting(id,title,value,min,max,step,help){return `<div class="setting"><label for="${id}">${title}<small>${help}</small></label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${title}"></div>`}
 const comfortScreen=screen;screen=function(id){
@@ -92,10 +91,52 @@ const mushafAppearance=readerAppearance;readerAppearance=function(){mushafAppear
 new MutationObserver(()=>requestAnimationFrame(alignMagnifiedPage)).observe($('page'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','id']});
 const mushafChangeMode=changeMode;changeMode=function(next){mushafChangeMode(next);if(next==='plain'&&prefs.plainFullscreen!==false)fullscreen(true);else if(immersive&&prefs.plainFullscreen!==false)fullscreen(false)};
 // Scrolling a magnified PDF must pan the page rather than accidentally advance it.
-reader.addEventListener('touchend',e=>{if(isScan()&&zoomForMode()>100&&touch){if(e.changedTouches.length&&Math.abs(e.changedTouches[0].clientX-touch.x)>15)suppressClickUntil=Date.now()+500;touch=null;e.stopImmediatePropagation()}},{capture:true,passive:true});
 reader.onclick=e=>{if(prefs.tapControls!==false||(immersive&&(prefs.focusTools===false||(mode==='plain'&&prefs.plainMinimal!==false))))originalReaderTap(e)};
 const mushafSettings=screen;screen=function(id){mushafSettings(id);if(id!=='settings')return;const content=$('sheet').querySelector('.sheet-content');
  content.insertAdjacentHTML('afterbegin',selectSetting('pdf-magnification','PDF magnification',[100,125,150,175,200,250].map(n=>[n,n+'%']),zoomForMode(),'Separate per PDF mode. Above 100%, scroll/pan from the Arabic right-hand side. Pinch zoom is also available.')+checkSetting('mushaf-fullscreen','Mode 3 full-page on opening',prefs.plainFullscreen!==false,'Trimmed page fills the safe reading area, matching a traditional Mushaf view.')+checkSetting('mushaf-minimal','Mode 3 minimal corner controls',prefs.plainMinimal!==false,'Only menu and bookmark remain. Tap the page to restore the full toolbar.')+checkSetting('mushaf-footer','Show mode 3 floating page controls',prefs.plainFooter===true,'Optional page badge and previous/next buttons. Hidden by default to keep the page clear.'));
  if(!isScan())$('pdf-magnification').closest('.setting').classList.add('hidden');$('pdf-magnification').onchange=()=>{prefs.pdfZooms={...(prefs.pdfZooms||{}),[mode]:Number($('pdf-magnification').value)};lastZoomPosition='';applyPrefs()};[['mushaf-fullscreen','plainFullscreen'],['mushaf-minimal','plainMinimal'],['mushaf-footer','plainFooter']].forEach(([id,key])=>$(id).onchange=()=>{prefs[key]=$(id).checked;applyPrefs()});
 };
 applyPrefs();if(mode==='plain'&&prefs.plainFullscreen!==false)requestAnimationFrame(()=>fullscreen(true));
+
+// One gesture owner replaces the original high-threshold swipe and zoom blockers.
+// Horizontal page turns and PDF panning are explicit, separate preferences.
+let pageGesture=null;
+const canTurnGesture=()=>prefs.swipes!==false&&prefs.swipeAction!=='pan'&&$('sheet').classList.contains('hidden')&&$('drawer').classList.contains('hidden');
+reader.addEventListener('touchstart',e=>{
+ if(e.touches.length!==1){pageGesture=null;suppressClickUntil=Date.now()+600;return}
+ const t=e.touches[0];pageGesture={x:t.clientX,y:t.clientY,time:Date.now(),moved:false};
+},{capture:true,passive:true});
+reader.addEventListener('touchmove',e=>{
+ if(!pageGesture||e.touches.length!==1){pageGesture=null;return}
+ const dx=e.touches[0].clientX-pageGesture.x,dy=e.touches[0].clientY-pageGesture.y;
+ if(Math.hypot(dx,dy)>12)pageGesture.moved=true;
+ if(canTurnGesture()&&Math.abs(dx)>6&&Math.abs(dx)>Math.abs(dy)*1.4&&(!window.visualViewport||window.visualViewport.scale<1.05))e.preventDefault();
+},{capture:true,passive:false});
+reader.addEventListener('touchend',e=>{
+ const g=pageGesture;pageGesture=null;touch=null;e.stopImmediatePropagation();
+ if(!g||e.changedTouches.length!==1)return;
+ const dx=e.changedTouches[0].clientX-g.x,dy=e.changedTouches[0].clientY-g.y;
+ if(g.moved||Math.hypot(dx,dy)>12)suppressClickUntil=Date.now()+600;
+ const threshold=Math.max(40,Math.min(72,reader.clientWidth*.14));
+ if(canTurnGesture()&&Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.4&&Date.now()-g.time<1600&&(!window.visualViewport||window.visualViewport.scale<1.05))go(page+(dx>0?1:-1));
+},{capture:true,passive:true});
+reader.addEventListener('touchcancel',()=>{pageGesture=null;touch=null;suppressClickUntil=Date.now()+600},{capture:true,passive:true});
+// Word study enlarges the original scan; step scrolling never cuts or rewrites words.
+const studyTools=document.createElement('div');studyTools.id='word-study-tools';studyTools.innerHTML='<button id="study-back" aria-label="Previous reading section">↑</button><span>Word study</span><button id="study-next" aria-label="Next reading section">↓</button>';document.body.appendChild(studyTools);
+function studyStep(direction){const stage=$('pdf-stage');if(!stage)return;const end=stage.scrollHeight-stage.clientHeight;const step=stage.clientHeight*clamp(prefs.studyStep,50,90,75)/100;const destination=stage.scrollTop+direction*step;if(direction>0&&stage.scrollTop>=end-2){go(page+1);return}if(direction<0&&stage.scrollTop<=2){go(page-1);return}stage.scrollTo({top:Math.max(0,Math.min(end,destination)),behavior:prefs.motion===false?'auto':'smooth'})}
+$('study-next').onclick=()=>studyStep(1);$('study-back').onclick=()=>studyStep(-1);
+const studyAppearance=readerAppearance;readerAppearance=function(){studyAppearance();document.body.dataset.wordStudy=String(mode==='word'&&!!prefs.wordStudy);if(mode==='word'&&prefs.wordStudy){document.body.dataset.minimalMushaf='true';document.body.dataset.hideMushafFooter='true'}};
+const studyScreen=screen;screen=function(id){studyScreen(id);
+ if(id==='comfort'&&mode==='word'){
+  $('comfort-original').insertAdjacentHTML('beforebegin','<button class="comfort-card" id="comfort-study"><strong>Word-by-word study</strong><small>Larger original Arabic and English · full-screen · scroll in overlapping sections without cutting the PDF</small></button>');
+  $('comfort-study').onclick=()=>{prefs.wordStudy=true;prefs.layouts={...(prefs.layouts||{}),word:'width'};prefs.pdfZooms={...(prefs.pdfZooms||{}),word:150};prefs.focusTools=true;lastZoomPosition='';applyPrefs();closePanels();fullscreen(true)};
+  const original=$('comfort-original').onclick;$('comfort-original').onclick=()=>{prefs.wordStudy=false;prefs.pdfZooms={...(prefs.pdfZooms||{}),word:100};original()};
+ }
+ if(id!=='settings')return;
+ const content=$('sheet').querySelector('.sheet-content');
+ content.insertAdjacentHTML('beforeend',selectSetting('swipe-action','Horizontal gesture',[['pages','Turn pages (Arabic right-to-left)'],['pan','Pan enlarged PDF instead']],prefs.swipeAction||'pages','Page turns work at PDF magnifications too. Choose pan to move sideways within a wide page. Pinch-zoomed native views pan until zoomed back out.')+checkSetting('word-study','Mode 1 section reading controls',!!prefs.wordStudy,'Use Word-by-word study in Reading comfort for larger text. Section steps overlap and retain the complete original scan.')+selectSetting('study-step','Reading section step',[[50,'Half screen'],[75,'Three quarters (default)'],[90,'Almost a full screen']],prefs.studyStep||75,'Smaller steps provide more overlap and help keep your place.')+checkSetting('word-fullscreen','Mode 1 full-page on opening',!!prefs.wordFullscreen,'Expand the word-by-word PDF into the safe reading area, with bars hidden. Tap to restore controls.'));
+ $('swipe-action').onchange=()=>{prefs.swipeAction=$('swipe-action').value;applyPrefs()};$('word-study').onchange=()=>{prefs.wordStudy=$('word-study').checked;applyPrefs()};$('study-step').onchange=()=>{prefs.studyStep=Number($('study-step').value);applyPrefs()};$('word-fullscreen').onchange=()=>{prefs.wordFullscreen=$('word-fullscreen').checked;applyPrefs()};
+};
+const studyChangeMode=changeMode;changeMode=function(next){studyChangeMode(next);if(next==='word'&&prefs.wordFullscreen)fullscreen(true)};
+const studyValidate=validateBackup;validateBackup=function(b){studyValidate(b);const p=b.data['tm-settings'];if(!p)return;for(const k of ['wordStudy','wordFullscreen'])if(p[k]!=null&&typeof p[k]!=='boolean')throw Error('Invalid study switch');if(p.swipeAction!=null&&!['pages','pan'].includes(p.swipeAction))throw Error('Invalid swipe action');if(p.studyStep!=null&&![50,75,90].includes(p.studyStep))throw Error('Invalid section step')};
+applyPrefs();if(mode==='word'&&prefs.wordFullscreen)requestAnimationFrame(()=>fullscreen(true));

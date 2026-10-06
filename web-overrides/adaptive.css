@@ -57,3 +57,10 @@ body.immersive[data-minimal-mushaf="true"] #focus-menu,body.immersive[data-minim
 body.immersive[data-hide-mushaf-footer="true"] .focus-bottom{display:none}
 body.pdf-reading[data-pdf-enlarged="true"] #pdf-stage{overflow:auto;overscroll-behavior:contain}
 body.pdf-reading[data-pdf-enlarged="true"] .pdf-image{width:calc(100% * var(--pdf-scale,1));height:auto;max-width:none;bottom:auto;object-fit:fill}
+
+/* Native pinch stays available; JavaScript handles only intentional horizontal page turns. */
+#reader{touch-action:auto}
+#word-study-tools{display:none;position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:24px;opacity:.88;padding:0 6px;color:var(--ink)}
+#word-study-tools button{min-width:48px;min-height:48px;font-size:22px;background:transparent;border:0;color:var(--ink)}
+#word-study-tools span{font-size:12px}
+body.immersive[data-word-study="true"] #word-study-tools{display:flex}

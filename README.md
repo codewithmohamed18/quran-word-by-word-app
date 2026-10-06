@@ -1,8 +1,8 @@
-# Tajweed & Meaning — v1.8.3 full-screen Mushaf
+# Tajweed & Meaning — v1.8.4 full-screen Mushaf
 
 [Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
-## What changed in v1.8.3
+## What changed in v1.8.4
 
 - Mode 3 now trims only the unused scanned margins at rendering time, retaining all detected ink, headings, border, side notes and printed page numbers. The PDF itself is unchanged. `config/plain-crops.json` records 850 page-specific bounds; preparation recomputes and verifies every rectangle.
 - Mode 3 defaults to full-page focus, with only menu/bookmark corner controls and no floating footer. Tap the page to restore the full toolbar. Settings can enable the footer, secondary controls or standard reading view.
@@ -63,3 +63,9 @@ The exact supplied v1.7 APK is stored in `payload/` as binary chunks because of 
 
 The repository is currently private. Downloads require repository access until its owner makes it public. No advertisements, login, file picker or online PDF download are added.
 
+
+### 1.8.4 reading improvements
+
+Swipe right for the next page and left for the previous page in both PDF modes. The master switch is in Settings. The new Horizontal gesture setting chooses page turns (default, also at PDF magnification) or sideways PDF panning. Native pinch zoom pans until zoomed back out; vertical scrolling stays available in either gesture mode.
+
+Mode 1 → Reading comfort → Word-by-word study enlarges the original scan to 150% and enters a safe full-screen view. Use the up/down section controls to scroll with overlap, then advance to the next page at the end. Choose 50%, 75% or 90% screen steps in Settings. No PDF words are cut, rearranged or rewritten. Choose Original v1.7 to restore the original full-page size. Mode 1 can optionally open in full-page view on future launches.

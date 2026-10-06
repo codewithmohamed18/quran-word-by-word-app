@@ -9,6 +9,10 @@ final class ReaderUITests: XCTestCase {
         XCTAssertTrue(next.waitForExistence(timeout: 30))
         let first = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 1 / 960")).firstMatch
         XCTAssertTrue(first.waitForExistence(timeout: 30))
+        app.webViews.firstMatch.swipeRight()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 2 / 960")).firstMatch.waitForExistence(timeout: 30))
+        app.webViews.firstMatch.swipeLeft()
+        XCTAssertTrue(first.waitForExistence(timeout: 30))
         next.tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 2 / 960")).firstMatch.waitForExistence(timeout: 30))
         app.buttons["Previous page"].tap()
@@ -26,6 +30,14 @@ final class ReaderUITests: XCTestCase {
         XCTAssertTrue(mushafMenu.waitForExistence(timeout: 30))
         XCTAssertTrue(mushafMenu.isHittable)
         XCTAssertTrue(app.buttons["Bookmark in focus view"].isHittable)
+        // Restore the toolbar with a central tap, then test the actual mode 3 swipe.
+        app.webViews.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let plainPage = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 4 / 850")).firstMatch
+        XCTAssertTrue(plainPage.waitForExistence(timeout: 15))
+        app.webViews.firstMatch.swipeRight()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 5 / 850")).firstMatch.waitForExistence(timeout: 30))
+        app.webViews.firstMatch.swipeLeft()
+        XCTAssertTrue(plainPage.waitForExistence(timeout: 30))
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Offline word-by-word reader"
         attachment.lifetime = .keepAlways

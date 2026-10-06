@@ -35,6 +35,8 @@ public class ReaderChecks extends Instrumentation {
             await("document.body.dataset.pdfLayout==='fill' && getComputedStyle(document.getElementById('pdf-image')).objectFit==='fill'",10);
             await("Math.abs(document.getElementById('reader').getBoundingClientRect().top-document.querySelector('header').getBoundingClientRect().bottom)<2 && document.querySelector('header').getBoundingClientRect().height<=52",10);
             screenshot("word-reader");
+            swipe(true);await("page===2",15);swipe(false);await("page===1",15);
+            js("prefs.swipes=false;applyPrefs()");swipe(true);await("page===1",5);js("prefs.swipes=true;applyPrefs()");
             tap("menu");js("document.querySelector('[data-screen=settings]').id='settings-link'");tap("settings-link");
             await("!!document.getElementById('page-brightness') && document.getElementById('pdf-fit').options.length===4",10);
             for(String layout:new String[]{"proportions","width","cover","fill"}){
@@ -48,6 +50,11 @@ public class ReaderChecks extends Instrumentation {
             for(String id:new String[]{"focus-menu","focus-modes","focus-bookmark","focus-exit","focus-next","focus-previous"})checkButton(id);
             tap("focus-bookmark");await("marks.includes(page)",10);tap("focus-bookmark");await("!marks.includes(page)",10);
             screenshot("focus-reader");tap("focus-exit");await("!document.body.classList.contains('immersive')",10);
+            js("screen('comfort')");tap("comfort-study");
+            await("prefs.wordStudy && immersive && document.getElementById('pdf-stage').scrollLeft>0",15);
+            screenshot("word-study");tap("study-next");await("document.getElementById('pdf-stage').scrollTop>0",10);
+            swipe(true);await("page===2",15);swipe(false);await("page===1",15);
+            js("prefs.swipeAction='pan';applyPrefs()");swipe(true);await("page===1",5);js("prefs.swipeAction='pages';applyPrefs();fullscreen(false);screen('comfort')");tap("comfort-original");
             js("screen('comfort')");tap("comfort-large");await("prefs.layouts.word==='width' && prefs.size===46 && prefs.englishSize===24",10);
             js("screen('comfort')");tap("comfort-original");await("prefs.layouts.word==='fill' && prefs.size===36 && prefs.englishSize===20",10);
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden') && !!document.getElementById('plain-mode')",10);
@@ -62,6 +69,8 @@ public class ReaderChecks extends Instrumentation {
             await("document.body.classList.contains('immersive') && getComputedStyle(document.querySelector('.focus-bottom')).display==='none' && document.getElementById('reader').getBoundingClientRect().height>=innerHeight-1",10);
             js("go(10)");await("document.getElementById('pdf-image')?.dataset.page==='10' && document.getElementById('pdf-image').complete",60);
             screenshot("trimmed-mushaf");
+            swipe(true);await("page===11",15);swipe(false);await("page===10",15);
+            await("document.getElementById('pdf-image')?.dataset.page==='10' && document.getElementById('pdf-image').complete",60);
             tap("focus-bookmark");await("marks.includes(page)",10);
             runOnMainSync(()->activity.finish());waitForIdleSync();
             activity=startActivitySync(new Intent().setClassName(getTargetContext(),"com.khalid.tajweedmeaning.adaptive.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -82,9 +91,10 @@ public class ReaderChecks extends Instrumentation {
             await("document.getElementById('pdf-magnification').value==='100'",10);
             js("document.getElementById('pdf-magnification').value='150';document.getElementById('pdf-magnification').dispatchEvent(new Event('change'));closePanels()");
             await("document.body.dataset.pdfEnlarged==='true' && document.getElementById('pdf-stage').scrollWidth>document.getElementById('pdf-stage').clientWidth*1.4 && document.getElementById('pdf-stage').scrollLeft>0",10);
+            swipe(true);await("page===11",15);swipe(false);await("page===10",15);
             js("prefs.pdfZooms.plain=100;applyPrefs()");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
-            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, no PDF copies\n");
+            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, real RTL swipes in modes 1 and 3 at 100% and 150%, disabled swipes and pan preference, word study scrolling, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
         }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }
@@ -102,6 +112,14 @@ public class ReaderChecks extends Instrumentation {
         sendPointerSync(down);Thread.sleep(100);
         MotionEvent up=MotionEvent.obtain(now,SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,x,y,0);
         sendPointerSync(up);down.recycle();up.recycle();waitForIdleSync();Thread.sleep(400);
+    }
+    private void swipe(boolean right)throws Exception{
+        syncFrame();JSONArray p=new JSONArray(js("(()=>{const r=reader.getBoundingClientRect();return [r.left+r.width*.25,r.left+r.width*.75,r.top+r.height*.55,innerWidth]})()"));
+        int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
+        float scale=(float)(width[0]/p.getDouble(3));float a=location[0]+(float)p.getDouble(right?0:1)*scale,b=location[0]+(float)p.getDouble(right?1:0)*scale,y=location[1]+(float)p.getDouble(2)*scale;
+        long start=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(start,start,MotionEvent.ACTION_DOWN,a,y,0);sendPointerSync(down);down.recycle();
+        for(int i=1;i<=12;i++){Thread.sleep(25);MotionEvent move=MotionEvent.obtain(start,SystemClock.uptimeMillis(),MotionEvent.ACTION_MOVE,a+(b-a)*i/12,y,0);sendPointerSync(move);move.recycle();}
+        MotionEvent up=MotionEvent.obtain(start,SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,b,y,0);sendPointerSync(up);up.recycle();waitForIdleSync();Thread.sleep(700);
     }
     private boolean hasPdf(File directory){File[] files=directory.listFiles();if(files!=null)for(File f:files){if(f.isDirectory()?hasPdf(f):f.getName().endsWith(".pdf"))return true;}return false;}
     private long size(File directory){long total=0;File[] files=directory.listFiles();if(files!=null)for(File f:files)total+=f.isDirectory()?size(f):f.length();return total;}
