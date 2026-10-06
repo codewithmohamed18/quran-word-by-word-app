@@ -51,7 +51,8 @@ jobs:
           api-level: 35
           target: default
           arch: x86_64
-          profile: pixel_7_pro
+          profile: pixel_2
+          ram-size: 3072M
           disk-size: 4096M
           disable-animations: true
           script: bash scripts/test-android.sh

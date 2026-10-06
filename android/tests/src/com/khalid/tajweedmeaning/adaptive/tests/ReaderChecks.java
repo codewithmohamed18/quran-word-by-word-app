@@ -49,7 +49,7 @@ public class ReaderChecks extends Instrumentation {
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
             result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
-        }catch(Throwable error){result.putString("stream","FAIL: "+profile+" "+error.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
+        }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }
     private WebView findWeb(View view){if(view instanceof WebView)return(WebView)view;if(view instanceof ViewGroup){ViewGroup g=(ViewGroup)view;for(int i=0;i<g.getChildCount();i++){WebView found=findWeb(g.getChildAt(i));if(found!=null)return found;}}return null;}
     private String js(String source)throws Exception{CountDownLatch done=new CountDownLatch(1);String[] answer=new String[1];runOnMainSync(()->web.evaluateJavascript(source,value->{answer[0]=value;done.countDown();}));if(!done.await(10,TimeUnit.SECONDS))throw new AssertionError("JavaScript timed out");return answer[0];}

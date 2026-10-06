@@ -3,6 +3,10 @@ set -euo pipefail
 mkdir -p dist/android-checks
 adb install -r dist/Tajweed-and-Meaning-v1.8-Adaptive.apk
 adb install -r android/tests/build/reader-tests.apk
+# The stock Quickstep launcher can ANR when wm density is changed repeatedly.
+# This disposable emulator tests the reader directly, so remove the launcher from the test session.
+adb shell am force-stop com.android.launcher3
+adb shell pm disable-user --user 0 com.android.launcher3
 adb shell svc wifi disable
 adb shell svc data disable
 adb shell cmd overlay enable com.android.internal.display.cutout.emulation.hole || true
@@ -15,7 +19,7 @@ run_case() {
   timeout 240s adb shell am instrument -w -e profile "$profile" com.khalid.tajweedmeaning.adaptive.tests/com.khalid.tajweedmeaning.adaptive.tests.ReaderChecks | tee "dist/android-checks/$profile.txt"
   adb pull /sdcard/Android/data/com.khalid.tajweedmeaning.adaptive/files/checks dist/android-checks/ >/dev/null
   if ! grep -q 'PASS:' "dist/android-checks/$profile.txt"; then
-    adb logcat -d -s AndroidRuntime > "dist/android-checks/$profile-crash.txt"
+    adb logcat -d -s AndroidRuntime System.err chromium > "dist/android-checks/$profile-crash.txt"
     exit 1
   fi
 }
