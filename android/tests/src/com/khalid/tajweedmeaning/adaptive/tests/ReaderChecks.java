@@ -80,6 +80,7 @@ public class ReaderChecks extends Instrumentation {
             screenshot("focus-reader");tap("focus-exit");await("!document.body.classList.contains('immersive')",10);
             js("screen('comfort')");tap("comfort-study");
             await("prefs.wordStudy && immersive && document.getElementById('pdf-stage').scrollLeft>0",15);
+            await("getComputedStyle(document.getElementById('pdf-stage')).touchAction.includes('pan-y')",10);
             screenshot("word-study");
             js("window.studyRight=document.getElementById('pdf-stage').scrollLeft");tap("study-next");await("document.getElementById('pdf-stage').scrollLeft<window.studyRight-2",10);
             tap("study-next");tap("study-next");await("document.getElementById('pdf-stage').scrollTop>0",10);
