@@ -14,3 +14,5 @@ body.immersive.pdf-reading #reader,body.immersive.fill-reading #reader{top:0;bot
 .setting{flex-wrap:wrap}.setting label{min-width:130px}.setting select{max-width:100%}
 @media(max-height:450px){:root{--top-bar:54px;--bottom-bar:52px}.drawer-head{padding:16px}.drawer-head .art{font-size:30px}}
 @media(min-width:700px){header .title{font-size:20px}header button{width:52px;flex-basis:52px}.sheet-content{width:100%;max-width:900px;margin:0 auto}.arabic{line-height:2.1}}
+/* A wide viewport must not flatten the Arabic or the original scanned page. */
+@media(orientation:landscape){body.pdf-reading .pdf-image{object-fit:contain}}

@@ -5,7 +5,7 @@
 ## What changed in v1.8
 
 - Native safe-area layout excludes Android status bars, display cutouts, navigation bars and the keyboard. Fullscreen retains cutout protection.
-- Dedicated Reading modes button, large toolbar targets, responsive phone/tablet and landscape controls.
+- Dedicated Reading modes button, large toolbar targets, responsive phone/tablet and landscape controls. Landscape preserves the scanned page proportions; pinch zoom remains available.
 - Original three offline reading modes, Arabic page direction, themes, bookmarks and navigation retained.
 - Lossless PDF cleanup preserves every original compressed image stream. Page sizes/rotation are verified, and first/middle/last page raster comparisons must match exactly.
 - Android renders seekable PDF assets directly from the APK through a storage proxy: no extra full-size PDF copies in private storage. The APK itself remains large because it contains two complete high-quality scanned PDFs. Lossless cleanup saves about 1.1 MB; installed storage saves roughly another 185 MB compared with copying both PDFs.
