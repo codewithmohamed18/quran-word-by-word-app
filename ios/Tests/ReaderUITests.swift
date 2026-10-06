@@ -22,7 +22,10 @@ final class ReaderUITests: XCTestCase {
         let plain = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "3. Plain Qur’an with colour-coded Tajweed")).firstMatch
         XCTAssertTrue(plain.waitForExistence(timeout: 15))
         plain.tap()
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 4 / 850")).firstMatch.waitForExistence(timeout: 30))
+        let mushafMenu = app.buttons["Open reading menu"]
+        XCTAssertTrue(mushafMenu.waitForExistence(timeout: 30))
+        XCTAssertTrue(mushafMenu.isHittable)
+        XCTAssertTrue(app.buttons["Bookmark in focus view"].isHittable)
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Offline word-by-word reader"
         attachment.lifetime = .keepAlways

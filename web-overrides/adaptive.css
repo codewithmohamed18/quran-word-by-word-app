@@ -51,3 +51,9 @@ body.word-reading[data-word-theme="high-contrast"] .pdf-image{filter:grayscale(1
 #focus-menu{left:0;top:0}#focus-modes{left:0;top:56px}#focus-bookmark{right:0;top:0}#focus-exit{right:0;top:56px}
 .focus-bottom button{background:transparent;border:0;box-shadow:none;opacity:.75;text-shadow:0 1px 3px var(--panel)}
 .focus-bottom .focus-page{background:var(--panel);border:1px solid var(--line);border-radius:24px;min-height:48px;font-size:12px}
+/* Mode 3 is a margin-free Mushaf by default, with no app footer occupying the page. */
+body.immersive[data-minimal-mushaf="true"] #focus-modes,body.immersive[data-minimal-mushaf="true"] #focus-exit{display:none}
+body.immersive[data-minimal-mushaf="true"] #focus-menu,body.immersive[data-minimal-mushaf="true"] #focus-bookmark{opacity:.5}
+body.immersive[data-hide-mushaf-footer="true"] .focus-bottom{display:none}
+body.pdf-reading[data-pdf-enlarged="true"] #pdf-stage{overflow:auto;overscroll-behavior:contain}
+body.pdf-reading[data-pdf-enlarged="true"] .pdf-image{width:calc(100% * var(--pdf-scale,1));height:auto;max-width:none;bottom:auto;object-fit:fill}

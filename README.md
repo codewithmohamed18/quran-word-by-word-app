@@ -1,8 +1,15 @@
-# Tajweed & Meaning — v1.8.2 comfortable reading
+# Tajweed & Meaning — v1.8.3 full-screen Mushaf
 
 [Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
-## What changed in v1.8.2
+## What changed in v1.8.3
+
+- Mode 3 now trims only the unused scanned margins at rendering time, retaining all detected ink, headings, border, side notes and printed page numbers. The PDF itself is unchanged. `config/plain-crops.json` records 850 page-specific bounds; preparation recomputes and verifies every rectangle.
+- Mode 3 defaults to full-page focus, with only menu/bookmark corner controls and no floating footer. Tap the page to restore the full toolbar. Settings can enable the footer, secondary controls or standard reading view.
+- PDF magnification 100–250%, saved per PDF mode. Enlarged pages scroll/pan rather than turning on horizontal swipes. Start at the Arabic right-hand edge. Existing pinch zoom remains available.
+- Google Play reader feedback informed this focus on small-screen enlargement and overlays that do not obscure text: https://play.google.com/store/apps/details?id=org.haris.quran
+
+## Existing v1.8.2 improvements
 
 - Full-page focus view has safe floating menu/mode/bookmark and RTL page controls instead of full toolbars. Optional launch-in-focus and an unobstructed-page toggle. System safe areas remain enforced on Android and iOS.
 - Reading comfort presets: original v1.7, larger relaxed reading (scrolling PDF/46px Arabic/24px English), quiet evening, and full-page focus.

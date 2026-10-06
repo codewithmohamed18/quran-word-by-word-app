@@ -25,7 +25,7 @@ public class MainActivity extends Activity {
     private final HandlerThread proxyThread=new HandlerThread("BundledPdfRead");
     private PdfRenderer word,plain;
     private ParcelFileDescriptor wordDescriptor,plainDescriptor;
-    private JSONArray crops;
+    private JSONArray crops,plainCrops;
     private volatile boolean volume,dead;
 
     @Override public void onCreate(Bundle state) {
@@ -120,12 +120,12 @@ public class MainActivity extends Activity {
         worker.execute(()->{
             Bitmap bitmap=null;
             try {
-                if(isPlain && plain==null){plainDescriptor=bundledDescriptor("plain-13line.pdf");plain=new PdfRenderer(plainDescriptor);}
+                if(isPlain && plain==null){plainDescriptor=bundledDescriptor("plain-13line.pdf");plain=new PdfRenderer(plainDescriptor);plainCrops=new JSONArray(readAsset("plain-crops.json"));}
                 if(!isPlain && word==null){wordDescriptor=bundledDescriptor("word-by-word.pdf");word=new PdfRenderer(wordDescriptor);crops=new JSONArray(readAsset("word-crops.json"));}
                 PdfRenderer renderer=isPlain?plain:word;
                 try(PdfRenderer.Page page=renderer.openPage(number-1)) {
                     float x=0,y=0,w=page.getWidth(),h=page.getHeight();
-                    if(!isPlain){JSONArray c=crops.getJSONArray(number-1);x=(float)c.getDouble(0);y=(float)c.getDouble(1);w=(float)c.getDouble(2)-x;h=(float)c.getDouble(3)-y;}
+                    {JSONArray c=(isPlain?plainCrops:crops).getJSONArray(number-1);x=(float)c.getDouble(0);y=(float)c.getDouble(1);w=(float)c.getDouble(2)-x;h=(float)c.getDouble(3)-y;}
                     float scale=pixelWidth/w;
                     bitmap=Bitmap.createBitmap(pixelWidth,(int)Math.ceil(h*scale),Bitmap.Config.ARGB_8888);
                     bitmap.eraseColor(Color.WHITE);Matrix transform=new Matrix();transform.setScale(scale,scale);transform.postTranslate(-x*scale,-y*scale);

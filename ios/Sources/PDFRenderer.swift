@@ -5,7 +5,7 @@ import CoreGraphics
 final class PDFRenderer {
     private let queue = DispatchQueue(label: "quran.pdf", qos: .userInitiated)
     private var documents: [String: CGPDFDocument] = [:]
-    private var crops: [[Double]]?
+    private var crops: [String:[[Double]]] = [:]
     private enum RenderError: Error { case missingPage }
 
     func render(mode: String, number: Int, pixelWidth: Int, completion: @escaping (Result<Data, Error>) -> Void) {
@@ -27,11 +27,12 @@ final class PDFRenderer {
         guard let document = documents[mode], let page = document.page(at: number) else { throw RenderError.missingPage }
         let bounds = page.getBoxRect(.mediaBox)
         var crop = bounds
-        if mode == "word" {
-            if crops == nil {
-                crops = try JSONSerialization.jsonObject(with: Data(contentsOf: root.appendingPathComponent("word-crops.json"))) as? [[Double]]
+        do {
+            let cropName = mode == "word" ? "word-crops.json" : "plain-crops.json"
+            if crops[mode] == nil {
+                crops[mode] = try JSONSerialization.jsonObject(with: Data(contentsOf: root.appendingPathComponent(cropName))) as? [[Double]]
             }
-            if let coordinates = crops, coordinates.indices.contains(number - 1), coordinates[number - 1].count == 4 {
+            if let coordinates = crops[mode], coordinates.indices.contains(number - 1), coordinates[number - 1].count == 4 {
                 let c = coordinates[number - 1]
                 // Supplied crops use top-left PDF coordinates; Core Graphics uses bottom-left.
                 crop = CGRect(x: bounds.minX + c[0], y: bounds.maxY - c[3], width: c[2] - c[0], height: c[3] - c[1]).intersection(bounds)

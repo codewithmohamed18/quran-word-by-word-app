@@ -59,7 +59,10 @@ public class ReaderChecks extends Instrumentation {
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden')",10);tap("plain-mode");
             await("mode==='plain'",10);
             await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
-            tap("bookmark");await("document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",10);
+            await("document.body.classList.contains('immersive') && getComputedStyle(document.querySelector('.focus-bottom')).display==='none' && document.getElementById('reader').getBoundingClientRect().height>=innerHeight-1",10);
+            js("go(10)");await("document.getElementById('pdf-image')?.dataset.page==='10' && document.getElementById('pdf-image').complete",60);
+            screenshot("trimmed-mushaf");
+            tap("focus-bookmark");await("marks.includes(page)",10);
             runOnMainSync(()->activity.finish());waitForIdleSync();
             activity=startActivitySync(new Intent().setClassName(getTargetContext(),"com.khalid.tajweedmeaning.adaptive.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
@@ -75,8 +78,13 @@ public class ReaderChecks extends Instrumentation {
             js("closePanels()");
             if(hasPdf(getTargetContext().getFilesDir())||hasPdf(getTargetContext().getCacheDir()))throw new AssertionError("Unexpected PDF copy in private storage");
             if(size(getTargetContext().getFilesDir())>2_000_000)throw new AssertionError("Unexpected full PDF copy in private files");
+            js("closePanels();fullscreen(false);screen('settings')");
+            await("document.getElementById('pdf-magnification').value==='100'",10);
+            js("document.getElementById('pdf-magnification').value='150';document.getElementById('pdf-magnification').dispatchEvent(new Event('change'));closePanels()");
+            await("document.body.dataset.pdfEnlarged==='true' && document.getElementById('pdf-stage').scrollWidth>document.getElementById('pdf-stage').clientWidth*1.4",10);
+            js("prefs.pdfZooms.plain=100;applyPrefs()");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
-            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, no PDF copies\n");
+            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
         }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }
