@@ -148,6 +148,9 @@ public class ReaderChecks extends Instrumentation {
         sendPointerSync(up);down.recycle();up.recycle();waitForIdleSync();Thread.sleep(400);
     }
     private void swipe(boolean right)throws Exception{
+        // A page number changes before the native bitmap is decoded. Gesture checks start
+        // on the displayed page, not on a superseded image while it is being replaced.
+        await("!isScan() || (pdfVisiblePage===page && document.getElementById('pdf-image')?.dataset.page===String(page) && document.getElementById('pdf-image').complete)",60);
         syncFrame();JSONArray p=new JSONArray(js("(()=>{const r=reader.getBoundingClientRect();return [r.left+r.width*.25,r.left+r.width*.75,r.top+r.height*.55,innerWidth]})()"));
         int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
         float scale=(float)(width[0]/p.getDouble(3));float a=location[0]+(float)p.getDouble(right?0:1)*scale,b=location[0]+(float)p.getDouble(right?1:0)*scale,y=location[1]+(float)p.getDouble(2)*scale;

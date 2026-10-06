@@ -118,7 +118,7 @@ reader.addEventListener('touchend',e=>{
  const dx=e.changedTouches[0].clientX-g.x,dy=e.changedTouches[0].clientY-g.y;
  if(g.moved||Math.hypot(dx,dy)>12)suppressClickUntil=Date.now()+600;
  const threshold=Math.max(40,Math.min(72,reader.clientWidth*.14));
- if(canTurnGesture()&&Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.4&&Date.now()-g.time<1600&&(!window.visualViewport||window.visualViewport.scale<1.05))go(page+(dx>0?1:-1));
+ if(canTurnGesture()&&Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.4&&(!window.visualViewport||window.visualViewport.scale<1.05))go(page+(dx>0?1:-1));
 },{capture:true,passive:true});
 reader.addEventListener('touchcancel',()=>{pageGesture=null;touch=null;suppressClickUntil=Date.now()+600},{capture:true,passive:true});
 // Word study enlarges the original scan; step scrolling never cuts or rewrites words.
