@@ -1,8 +1,8 @@
-*.iml
-.gradle/
-.idea/
-local.properties
-**/build/
-*.apk
-*.pdf
+dist/
+shared/web/
+ios/build/
+ios/*.xcodeproj/
+ios/*.xcworkspace/
+ios/**/xcuserdata/
 .DS_Store
+__pycache__/

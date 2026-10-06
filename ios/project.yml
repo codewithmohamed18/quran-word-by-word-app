@@ -1,0 +1,51 @@
+name: TajweedMeaning
+options:
+  bundleIdPrefix: com.codewithmohamed18
+  deploymentTarget:
+    iOS: '15.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: '1.7.0'
+    CURRENT_PROJECT_VERSION: '1'
+targets:
+  TajweedMeaning:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+      - path: ../shared/web
+        type: folder
+        buildPhase: resources
+    info:
+      path: build/Info.plist
+      properties:
+        CFBundleDisplayName: Tajweed & Meaning
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIRequiresFullScreen: true
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.codewithmohamed18.tajweedmeaning
+        TARGETED_DEVICE_FAMILY: '1,2'
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+  ReaderUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: Tests
+    dependencies:
+      - target: TajweedMeaning
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.codewithmohamed18.tajweedmeaning.tests
+schemes:
+  TajweedMeaning:
+    build:
+      targets:
+        TajweedMeaning: all
+        ReaderUITests: [test]
+    test:
+      targets: [ReaderUITests]

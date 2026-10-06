@@ -1,71 +1,52 @@
-# Qur’an Word by Word — 3.2
+# Tajweed & Meaning — supplied Soft Cream v1.7
 
-A Kotlin / Jetpack Compose / Material 3 Android reader with the complete 960-page Arabic–English word-by-word Qur’an bundled. Opens directly to the last-read page. No picker, account, ads, phone download or internet permission. Android 8.0+ (minSdk 26).
+This repository replaces the previous Qur’an Word by Word project with the supplied **Tajweed-and-Meaning-v1.7-Soft-Cream.apk** and an iOS port of its complete offline reader.
 
-## Install
+## Downloads
 
-Open this repository’s **Actions → Build Android APK**, select a successful run and download **quran-word-by-word-apk**. Extract and install `app-debug.apk`. The APK is approximately 110 MB; allow additional space for installation and the private PDF copy. The first launch copies the included PDF locally and works in airplane mode.
+Open [Releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/latest).
 
-This version uses a checked-in **testing-only debug key** so future CI debug APKs can update one another while retaining bookmarks/progress. The debug key has the standard public Android debug passwords and is not a secret or a release identity. Older version 1/2 APKs used ephemeral keys, so uninstall those once if Android rejects this update; uninstalling clears local reading data. Never use the test key for a Play Store/production release; configure a private release signing key separately.
+- **Android:** install the APK. It is the exact uploaded, signed v1.7 file, not a reconstructed APK. SHA-256: `5550e1c06b7843f8f4bbd27314c743201b4ce2e05e17878fc724e9991070c497`.
+- **iOS unsigned IPA:** a real iPhone/iPad build, but it must be signed with an Apple account before installation. Downloading it alone does not install an app.
+- **iOS Simulator ZIP:** open using Xcode's Simulator; it does not run on an iPhone.
+- **Signed iOS IPA:** generated only when the repository's Apple signing secrets are configured. An Ad Hoc IPA installs only on devices registered in its provisioning profile.
 
-## Read and navigate
+Public iPhone distribution requires TestFlight or the App Store and an Apple Developer account. GitHub cannot bypass Apple's signing and device rules.
 
-- Opens in immersive full screen: Android bars, toolbar and page counter are hidden. Single tap shows/hides controls. Pages fit the available space and stay centered without cropping or stretching. The surrounding reading area follows the selected light/dark theme. Cream/gold Material 3 controls remain available.
-- Hamburger drawer: Continue Reading, Juz (Para), Surah, Bookmarks, Go to Page, Settings, About.
-- 30 Juz and all 114 Surahs in Qur’anic order. Surah rows include Arabic and transliterated names. Some short Surahs share the same PDF page.
-- Pinch to zoom up to 6×; double tap to zoom/fit. At fit size, swipe right for the next page and left for the previous page. Next is the left arrow; Previous is the right arrow, following Arabic reading order. At zoom, dragging pans the page.
-- Previous/Next controls and page counter jump dialog. Reading menu includes Fit page and Hide controls; a single tap toggles controls.
-- Bookmarks and last successfully displayed page persist with Preferences DataStore. Bookmarks have their own screen and can be removed from it.
-- Settings: device/light/dark themes and optional keep-screen-awake while the reader is open. PDF page colours remain original in dark mode.
+This repository must be **public** for anyone to access its downloads. If it is private, the owner and authorized collaborators can access them. Change visibility at Settings → General → Danger Zone → Change repository visibility. No signing keys are committed here.
 
-Original interface inspired by the reference’s navigation structure; no copied branding, logos, advertising or third-party UI artwork.
+## Reader
 
-## Correct page mappings
+All three supplied modes and their content are retained: original Arabic-English word-by-word pages with Soft Cream theme, colour Tajweed with Hilali–Khan meanings, and the original 13-line colour-coded Tajweed Mushaf. The supplied interface includes Juz/Surah navigation, search, bookmarks, reading history, last page, dark mode, full-screen display, page animations and right-to-left page turns. Content is bundled and reading does not need internet.
 
-Edit **`app/src/main/assets/navigation.json`** and rebuild. This is the single configurable source for all Juz and Surah destinations. Numbers are one-based PDF page positions, including starts partway down a page. Surah entries contain `number`, `arabic`, `name`, `page`; Juz entries use the same shape. Keep all 30 / 114 entries in order, within pages 1–960. Duplicate Surah page numbers are expected for short chapters.
+The Android download is unmodified. Its application identifier is `com.khalid.tajweedmeaning`; it is a separate app from the former `com.codewithmohamed.quranwordbyword`, so old app bookmarks are not automatically migrated. The original Android native source and signing key were not included with the APK; this repository does not claim to recover them.
 
-Examples: At-Tawba starts on 297, Taa-Haa on 497, Ar-Rahmaan on 848, An-Naas on 960. Page starts were checked from the actual scanned edition, using the Surah-opening ribbons / first verses, rather than a standard 604-page Mushaf index. Arabic/transliterated name metadata: https://api.alquran.cloud/v1/surah (downloaded during development; not accessed by the app).
+The iOS app uses the exact embedded HTML, JavaScript, text, fonts and PDFs, plus a Swift/UIKit/WKWebView bridge and Core Graphics PDF renderer. iOS keeps its own reading state in the persistent WebKit store. The Android volume-button setting has no effect on iOS because iOS does not provide a supported app API to repurpose its volume buttons.
 
-## Bundled edition
+## Build iOS on a Mac
 
-User source: https://haameem7.wordpress.com/2023/01/07/quran-arabic-english-word-by-word-translation-juz-pdf/
+1. Install Xcode and XcodeGen (`brew install xcodegen`).
+2. Run `python3 scripts/prepare.py` from the repository root.
+3. Run `cd ios && xcodegen generate`.
+4. Open `ios/TajweedMeaning.xcodeproj`, choose the TajweedMeaning scheme and an iPhone Simulator, then Run.
+5. For your own iPhone, select your Apple development team and a unique bundle identifier in Xcode's Signing & Capabilities.
 
-Build source: https://archive.org/download/quran-arabic-english-word-by-word-translation/quran-arabic-english-word-by-word-translation.pdf
-
-Source SHA-256: `4f6c1a532dc9fe4bec3f09f72ffbb9be66753536b19e268850281d05874adc82`.
-
-The original has 962 pages; its 30 Juz start at pages 2, 34, …, 930. `scripts/prepare_quran.py` verifies its checksum, page count and every Juz outline, and copies original pages 2–961 unchanged into `app/src/main/assets/quran-960.pdf`. The bundled 960 pages exclude the outer cover/final page. Juz starts are 1, 33, …, 929. The generated asset is excluded from git to keep source manageable; **the final APK embeds the entire PDF**, not a remote link.
-
-## Build in Android Studio
-
-Prepare the bundled asset once:
-
-```sh
-python -m pip install pypdf==6.1.1
-python scripts/prepare_quran.py
-```
-
-Or use a verified local original: `python scripts/prepare_quran.py --source /path/to/original-962-page.pdf`.
-
-Open this folder in Android Studio; use JDK 17, SDK 35 and Build Tools 35.0.0. Run **app**.
-
-```sh
-./gradlew testDebugUnitTest lintDebug assembleDebug
-```
-
-Windows: `gradlew.bat testDebugUnitTest lintDebug assembleDebug`.
-APK: `app/build/outputs/apk/debug/app-debug.apk`.
+`scripts/prepare.py` reconstructs the supplied APK from binary parts and checks its full checksum before extracting the offline assets. Parts keep every Git blob comfortably below GitHub's file limits. They are not downloads from third-party servers, and no runtime network fetch is needed.
 
 ## GitHub Actions
 
-Every push (all branches), pull request and manual dispatch builds the debug APK. The workflow installs tools, verifies/prepares the PDF asset, compiles, runs unit tests/lint and uploads the APK. It then runs an Android emulator with Wi-Fi/mobile data disabled to test reader/Juz/Surah navigation and DataStore persistence, and uploads screenshots/reports. An APK upload alone does not mean device tests passed: check the overall run result. APK artifacts are retained for 30 days.
+Every main-branch push verifies the exact Android APK, builds an unsigned iOS device app, runs iPhone Simulator tests, and publishes both platforms to GitHub Releases after checks pass. Test results are attached to the workflow run. The Xcode project is generated from the checked-in `ios/project.yml`.
 
-## Architecture
+To enable a signed Ad Hoc iOS IPA, add repository Actions secrets:
 
-- `NavigationConfig`: validated JSON metadata; easy to extend with verse/audio indexes.
-- `ReaderStore`: DataStore persistence for bookmarks, position and theme/awake settings; migrates version 2 bundled-reader preferences on first run.
-- `PdfEngine`: platform `PdfRenderer`, all native calls serialized on one worker. Bounded preview bitmap; re-renders the visible viewport at higher quality when zoomed, retaining source page detail.
-- `ReaderViewModel`: reader state and actions independent of UI.
-- `QuranApp`: Compose Material 3 navigation, lists and settings; `PdfPageView` is a Kotlin gesture/rendering view hosted by Compose.
+| Secret | Value |
+| --- | --- |
+| `APPLE_CERTIFICATE_P12_BASE64` | Base64-encoded Apple Distribution certificate and private key (.p12) |
+| `APPLE_CERTIFICATE_PASSWORD` | Password protecting that .p12 |
+| `APPLE_PROVISIONING_PROFILE_BASE64` | Base64-encoded Ad Hoc provisioning profile matching `com.codewithmohamed18.tajweedmeaning` and including the intended devices |
 
-Original source is scanned. Zoom re-renders at screen resolution but cannot invent detail absent in the scan. Text selection, audio, ayah search, Tajweed metadata, favourites and reading statistics are future features, not currently displayed as working controls. No network permission or analytics. See [TESTING.md](TESTING.md).
+Certificates are imported into a temporary CI keychain and removed afterward. Do not put them in a commit or issue. These credentials are not needed for simulator or unsigned builds.
+
+## Attribution
+
+The APK's `SOURCE-LICENSE.txt`, source acknowledgements, fonts, Qur’an data and translation notices are preserved in the extracted bundle and About screen. The embedded MIT attribution credits Abubakr Elmallah. Content provenance is described in the supplied app's About screen; no new Qur’an text or translation is substituted.

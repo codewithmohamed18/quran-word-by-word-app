@@ -1,0 +1,21 @@
+{
+  "version": "1.7",
+  "filename": "Tajweed-and-Meaning-v1.7-Soft-Cream.apk",
+  "sha256": "5550e1c06b7843f8f4bbd27314c743201b4ce2e05e17878fc724e9991070c497",
+  "size": 186475698,
+  "chunk_size": 750000,
+  "parts": 249,
+  "assets": {
+    "SOURCE-LICENSE.txt": "15e6255d8c11c1f913413db7fbd1f83c53482fe0b2025f493b01994020b736f4",
+    "Uthmani.ttf": "bf28dcd26adbe2b01c85cf3cb1e7d4fcefd6b3460d48d53544f7f27f8c5c5b48",
+    "app.js": "2651c50830866d1f2006795472040408def2befb6bc83945d5a8840d459b66b5",
+    "data.js": "7ec393c39304efe3515f1d4f59a2bfce73b96a95d1f62d6b6095d2d6c8091450",
+    "index.html": "914857d7f92153e0aabdaf84479867c411080b744ce8dbb735d88f026d3df876",
+    "plain-13line.pdf": "aecf894e01f6ae69e2fe0cef4e96eb1a4ec157d769bedefa9531bfdf35681e32",
+    "plain-navigation.js": "13991aece7f8af890dda969e20264909ac829f12260afe520ea662bd33381382",
+    "plain-rules.jpg": "bb7052fe19b2c6c879778a21d6dce1376a0fe33cf90a87c9c59f8f3aa13e8e6e",
+    "word-by-word.pdf": "61ab60158e27be586eb2614acf26f299a9114d8c6bc5646766fc13164d11853e",
+    "word-crops.json": "d3ccd5946f621ea8dcab23edc096966d8e76da4d7c522aeca47816bebf3c8480",
+    "word-navigation.js": "ebef8b6dcc4516d5e9a16b6fac543339a3637ee0ea0d35c595a8c40fb20d5fde"
+  }
+}
