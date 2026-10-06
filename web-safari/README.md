@@ -47,3 +47,9 @@ Complete-volume mirror: https://www.islamicauthenticlibrary.org/
 High-resolution juz scans: https://www.emaanlibrary.com/book/the-noble-quran-word-for-word-arabic-english-color/
 
 The printed edition’s colours identify grammatical categories; they are not a replacement for the separate Tajweed mode’s recitation markings.
+
+### Published book assets
+
+The generated book pages and verified PDF pieces are also stored on the public [`web-reading-assets` branch](https://github.com/codewithmohamed18/quran-word-by-word-app/tree/web-reading-assets/web-assets/study). `config/study-assets.json` records the immutable asset commit and download base. Browser fetches use CORS and save opened Mode 4 pages in the existing offline page cache. The app keeps the combined PDF as one downloadable file; its verified pieces are only a transfer detail.
+
+To build a smaller deployment while retaining all book content, set `QURAN_STUDY_ASSET_BASE` to `baseUrl` from that configuration alongside `QURAN_STUDY_SOURCE`. The builder removes the duplicate local Mode 4 files from the deployment output after exporting them. JavaScript URLs are versioned to prevent older installed app shells from mixing old and new reader code.

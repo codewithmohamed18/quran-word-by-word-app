@@ -1,6 +1,6 @@
 """Apply Reading Mode 4 integration to generated WEB files only."""
 from pathlib import Path
-import sys
+import sys,re
 
 def patch(output):
  output=Path(output)
@@ -28,16 +28,22 @@ def patch(output):
  p.write_text(s)
  p=output/'web-bridge.js';s=p.read_text().replace('word:0,plain:0','word:0,plain:0,study:0').replace("target==='word'?'receivePdf':'receivePlainPdf'", "target==='study'?'receiveStudyPdf':target==='word'?'receivePdf':'receivePlainPdf'")
  s=s.replace(' plainPage(n){', " studyPage(n){setTimeout(()=>browserScan('study',n),0)},\n plainPage(n){")
+ # Store cross-origin book images in the same offline page cache as the other scans.
+ s=s.replace("if(n<SCANS[target].length&&navigator.onLine!==false)fetch(`pages/${target}-${n+1}.${SCANS[target][n].ext}`).catch(()=>{})", "if(n<SCANS[target].length&&navigator.onLine!==false)(target==='study'?studyPageResponse(n+1):fetch(`pages/${target}-${n+1}.${SCANS[target][n].ext}`)).catch(()=>{})")
+ s=s.replace("img.src=`pages/${target}-${n}.${info.ext}`", "if(target==='study'){studyPageResponse(n).then(r=>r.blob()).then(blob=>{if(generation!==scanGeneration[target])return;const url=URL.createObjectURL(blob),onload=img.onload,onerror=img.onerror;img.onload=()=>{URL.revokeObjectURL(url);onload()};img.onerror=()=>{URL.revokeObjectURL(url);onerror()};img.src=url}).catch(()=>img.onerror())}else img.src=`pages/${target}-${n}.${info.ext}`")
+ s+="\nfunction studyScanUrl(n){return (typeof STUDY_ASSET_BASE==='string'&&STUDY_ASSET_BASE?STUDY_ASSET_BASE.replace(/\\/$/,'')+'/':'')+'pages/study-'+n+'.'+SCANS.study[n-1].ext}\nasync function studyPageResponse(n){const url=studyScanUrl(n),cache=await caches.open('quran-pages-v1'),saved=await cache.match(url);if(saved)return saved;const response=await fetch(url);if(!response.ok||!response.headers.get('content-type')?.startsWith('image/'))throw Error('Could not download this page.');try{await cache.put(url,response.clone())}catch{}return response}\n"
  p.write_text(s)
  p=output/'web-reader.js';s=p.read_text().replace("WEB_VERSION='2.0'", "WEB_VERSION='3.0'").replace("['word','plain','tajweed']", "['word','plain','tajweed','study']").replace('word:960,plain:850,tajweed:604','word:960,plain:850,tajweed:604,study:STUDY_NAV.total').replace('all three modes','all four modes')
  p.write_text(s)
  p=output/'web-install.js';s=p.read_text().replace("[['word',1,960],['plain',1,850]]", "[['word',1,960],['plain',1,850],['study',1,STUDY_NAV.total]]").replace("mode==='word'?WORD_NAV:PLAIN_NAV", "mode==='study'?STUDY_NAV:mode==='word'?WORD_NAV:PLAIN_NAV").replace('saved={word:0,plain:0}', 'saved={word:0,plain:0,study:0}').replace('(word|plain)-', '(word|plain|study)-')
+ s=s.replace("const scanUrl=(m,n)=>`pages/${m}-${n}.${SCANS[m][n-1].ext}`;","const scanUrl=(m,n)=>m==='study'?studyScanUrl(n):`pages/${m}-${n}.${SCANS[m][n-1].ext}`;")
  s=s.replace('Plain Tajweed: ${saved.plain}/850 pages.', 'Plain Tajweed: ${saved.plain}/850 pages · Study Qur’an: ${saved.study}/${STUDY_NAV.total} pages.')
  s=s.replace('Save complete Qur’an · about 210 MB', 'Save all scanned modes · about ${Math.ceil(210+STUDY_PDF.pageBytes/1048576)} MB')
  p.write_text(s)
- p=output/'sw.js';s=p.read_text().replace("quran-shell-v2", "quran-shell-v3").replace("'web-reader.js',", "'web-reader.js','web-study.js','study-navigation.js','study-meta.js','study-download.js',")
+ p=output/'sw.js';s=p.read_text().replace("quran-shell-v2", "quran-shell-v5").replace("'web-reader.js',", "'web-reader.js','web-study.js','study-navigation.js','study-meta.js','study-download.js',")
+ s=s.replace("'icon.png'];","'icon.png'].map(url=>url.endsWith('.js')?url+'?v=5':url);")
  # PDF chunks bypass shell caching; download validates each chunk explicitly.
  s=s.replace(" if(u.pathname.includes('/pages/'))", " if(u.pathname.includes('/study-pdf/')){e.respondWith(fetch(e.request));return}\n if(u.pathname.includes('/pages/'))")
  p.write_text(s)
- p=output/'index.html';s=p.read_text().replace('<script src="web-bridge.js">','<script src="study-navigation.js"></script><script src="study-meta.js"></script><script src="study-download.js"></script><script src="web-bridge.js">').replace('</body>','<script src="web-study.js"></script></body>');p.write_text(s)
+ p=output/'index.html';s=p.read_text().replace('<script src="web-bridge.js">','<script src="study-navigation.js"></script><script src="study-meta.js"></script><script src="study-download.js"></script><script src="web-bridge.js">').replace('</body>','<script src="web-study.js"></script></body>');s=re.sub(r'src="([^"]+\.js)"',r'src="\1?v=5"',s);p.write_text(s)
 if __name__=='__main__':patch(sys.argv[1])

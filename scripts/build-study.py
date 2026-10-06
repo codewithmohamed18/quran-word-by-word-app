@@ -7,7 +7,7 @@ Juz scans supply higher-resolution reading images. All printed content is retain
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 from io import BytesIO
-import sys,json,re,hashlib
+import sys,json,re,hashlib,os
 import fitz
 from PIL import Image, ImageOps
 
@@ -76,8 +76,11 @@ def main():
     with pdf.open('rb') as f:
         while b:=f.read(16*1024*1024):
             name=f'study-pdf/part-{len(chunks)+1:03}.bin';(output/name).write_bytes(b);chunks.append({'url':name,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+    base=os.environ.get('QURAN_STUDY_ASSET_BASE','').rstrip('/')
+    if base:
+        for chunk in chunks:chunk['url']=base+'/'+chunk['url']
     size=sum(p.stat().st_size for p in (output/'pages').glob('study-*'))
-    (output/'study-download.js').write_text('const STUDY_PDF='+json.dumps({'bytes':pdf.stat().st_size,'pageBytes':size,'chunks':chunks,'sha256':hashlib.sha256(pdf.read_bytes()).hexdigest()},separators=(',',':'))+';')
+    (output/'study-download.js').write_text('const STUDY_ASSET_BASE='+json.dumps(base)+';\nconst STUDY_PDF='+json.dumps({'bytes':pdf.stat().st_size,'pageBytes':size,'chunks':chunks,'sha256':hashlib.sha256(pdf.read_bytes()).hexdigest()},separators=(',',':'))+';')
     (source/'build-report.json').write_text(json.dumps({'total':offset,'volumes':volumes,'surahs':nav['surahs'],'juz':juznav,'pdfBytes':pdf.stat().st_size,'pageBytes':size},indent=2))
     print(f'Complete: {offset} pages; PDF {pdf.stat().st_size/1048576:.1f} MB; web pages {size/1048576:.1f} MB',flush=True)
 if __name__=='__main__':main()

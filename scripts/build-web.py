@@ -72,5 +72,8 @@ study_source = os.environ.get('QURAN_STUDY_SOURCE')
 if study_source:
     subprocess.run([sys.executable, str(ROOT / 'scripts/build-study.py'), study_source, str(output), str(ROOT / 'dist/Study-the-Noble-Quran-Complete.pdf')], check=True)
     runpy.run_path(str(ROOT / 'web-safari/study-patch.py'))['patch'](output)
+    if os.environ.get('QURAN_STUDY_ASSET_BASE'):
+        for asset in pages.glob('study-*'):asset.unlink()
+        shutil.rmtree(output / 'study-pdf')
 else:
     print('Mode 4 source PDFs not supplied; building the existing three-mode reader.')
