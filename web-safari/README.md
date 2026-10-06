@@ -24,3 +24,26 @@ Feedback informing these priorities:
 - https://quran.com/product-updates/reading-bookmark-easily-track-your-quran-progress
 
 These are selected reading improvements, not a claim that every requested feature from other apps is implemented. Arabic text, translations, scan files and Tajweed markings remain sourced from the existing bundled assets.
+
+## Web reader 3.0 — Reading Mode 4
+
+The live web app adds **Study the Noble Qur’an — Word for Word** (Darussalam, full colour, 2012), with all 1,797 pages from the three complete volumes. The downloadable PDF preserves every original page, including covers, introductions and contents, and adds volume/Juz outline bookmarks. Sharper matching juz scans provide the web reading pages, retaining all printed content and colours while trimming only blank outer margins. Web images are encoded as WebP at quality 90, up to 1,500 pixels wide.
+
+Mode 4 has its own last-read page, bookmarks, Surah/Juz navigation, combined-page and volume jumps, fit-width scrolling, zoom, share links and backup/restore. Offline saving supports this mode, a Surah, a Juz, or all scanned modes. Saving every mode requires substantially more storage than reader 2.0; the app shows the current estimate. Existing offline page caches are retained during updates.
+
+Menu → **Study Qur’an · complete PDF** downloads the combined book. Its 16 MiB pieces are fetched sequentially and checked against SHA-256 hashes, then assembled as one PDF for saving to Files. PDF pieces are not included in automatic app-shell caching.
+
+### Rebuild with Mode 4
+
+```sh
+python scripts/fetch-study.py /tmp/quran-study-source
+QURAN_STUDY_SOURCE=/tmp/quran-study-source python scripts/build-web.py
+```
+
+Dependencies: PyMuPDF (`fitz`), Pillow, Python 3.10+, and curl. `config/study-sources.json` records verified URLs, page counts and SHA-256 hashes; changed or truncated sources fail verification. `scripts/build-study.py` checks all 114 Surah starts, all 30 Juz starts, page counts and volume boundaries. The web integration is applied only after native bundled files are copied into web output. Android and iOS sources are unchanged.
+
+Requested source: https://www.kalamullah.com/study-the-noble-quran.html
+Complete-volume mirror: https://www.islamicauthenticlibrary.org/
+High-resolution juz scans: https://www.emaanlibrary.com/book/the-noble-quran-word-for-word-arabic-english-color/
+
+The printed edition’s colours identify grammatical categories; they are not a replacement for the separate Tajweed mode’s recitation markings.

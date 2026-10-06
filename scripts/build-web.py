@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import runpy
 import shutil
+import sys
 
 import fitz
 from PIL import Image, ImageDraw
@@ -17,7 +18,7 @@ for item in source.iterdir():
         shutil.copy2(item, output / item.name)
 for directory in [ROOT / 'web-overrides', ROOT / 'web-safari']:
     for item in directory.iterdir():
-        if item.is_file() and item.name != 'README.md':
+        if item.is_file() and item.suffix != '.py' and item.name != 'README.md':
             shutil.copy2(item, output / item.name)
 
 app = (output / 'app.js').read_text()
@@ -63,3 +64,13 @@ draw.polygon([(80,136),(160,120),(256,160),(352,120),(432,136),(432,376),(352,36
 draw.line([(256,160),(256,400)], fill='#183f38', width=12)
 icon.save(output / 'icon.png')
 print('Safari reader built:', output)
+
+# Optional web-only Darussalam edition. Supply all verified source PDFs to include it.
+import os
+import subprocess
+study_source = os.environ.get('QURAN_STUDY_SOURCE')
+if study_source:
+    subprocess.run([sys.executable, str(ROOT / 'scripts/build-study.py'), study_source, str(output), str(ROOT / 'dist/Study-the-Noble-Quran-Complete.pdf')], check=True)
+    runpy.run_path(str(ROOT / 'web-safari/study-patch.py'))['patch'](output)
+else:
+    print('Mode 4 source PDFs not supplied; building the existing three-mode reader.')
