@@ -19,10 +19,11 @@ public class ReaderChecks extends Instrumentation {
             activity=startActivitySync(new Intent().setClassName(getTargetContext(),"com.khalid.tajweedmeaning.adaptive.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
             await("!!document.getElementById('modes-button')",30);
-            await("document.querySelector('#pdf-stage img') && document.querySelector('#pdf-stage img').complete && document.querySelector('#pdf-stage img').naturalWidth>0",60);
+            await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
             runOnMainSync(()->{
                 WindowInsets insets=activity.getWindow().getDecorView().getRootWindowInsets();
                 android.graphics.Insets safe=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());
+                if(profile.equals("pixel-cutout") && insets.getDisplayCutout()==null)throw new AssertionError("Cutout test profile did not provide a display cutout");
                 int[] location=new int[2];web.getLocationOnScreen(location);
                 if(location[0]<safe.left||location[1]<safe.top)throw new AssertionError("WebView overlaps system bars/cutout");
                 if(web.getHeight()>activity.getWindow().getDecorView().getHeight()-safe.top-safe.bottom)throw new AssertionError("WebView overlaps bottom navigation");
@@ -34,13 +35,13 @@ public class ReaderChecks extends Instrumentation {
             // Pick the large text mode first. Tests its responsive layout before requesting the second bundled PDF.
             tap("tajweed-mode");await("document.body.classList.contains('fill-reading')",15);
             tap("modes-button");tap("plain-mode");
-            await("document.querySelector('#pdf-stage img') && document.querySelector('#pdf-stage img').complete && document.querySelector('#pdf-stage img').naturalWidth>0",60);
+            await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
             tap("bookmark");await("document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",10);
             runOnMainSync(()->activity.finish());waitForIdleSync();
             activity=startActivitySync(new Intent().setClassName(getTargetContext(),"com.khalid.tajweedmeaning.adaptive.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
             await("document.getElementById('bookmark') && document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",30);
-            await("document.querySelector('#pdf-stage img') && document.querySelector('#pdf-stage img').complete && document.querySelector('#pdf-stage img').naturalWidth>0",60);
+            await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
             screenshot("reader");
             if(hasPdf(getTargetContext().getFilesDir())||hasPdf(getTargetContext().getCacheDir()))throw new AssertionError("Unexpected PDF copy in private storage");
             if(size(getTargetContext().getFilesDir())>2_000_000)throw new AssertionError("Unexpected full PDF copy in private files");
@@ -63,5 +64,5 @@ public class ReaderChecks extends Instrumentation {
     }
     private boolean hasPdf(File directory){File[] files=directory.listFiles();if(files!=null)for(File f:files){if(f.isDirectory()?hasPdf(f):f.getName().endsWith(".pdf"))return true;}return false;}
     private long size(File directory){long total=0;File[] files=directory.listFiles();if(files!=null)for(File f:files)total+=f.isDirectory()?size(f):f.length();return total;}
-    private void screenshot(String name)throws Exception{File out=new File(getTargetContext().getExternalFilesDir(null),"checks");out.mkdirs();Bitmap b=getUiAutomation().takeScreenshot();try(FileOutputStream stream=new FileOutputStream(new File(out,profile+"-"+name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,stream);}b.recycle();}
+    private void screenshot(String name)throws Exception{Thread.sleep(500);File out=new File(getTargetContext().getExternalFilesDir(null),"checks");out.mkdirs();Bitmap b=getUiAutomation().takeScreenshot();try(FileOutputStream stream=new FileOutputStream(new File(out,profile+"-"+name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,stream);}b.recycle();}
 }
