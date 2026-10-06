@@ -44,6 +44,12 @@ public class ReaderChecks extends Instrumentation {
             tap("large-controls");await("document.querySelector('header').getBoundingClientRect().height===64",5);
             tap("large-controls");await("document.querySelector('header').getBoundingClientRect().height===52",5);
             js("closePanels()");
+            tap("full");await("document.body.classList.contains('immersive')",10);
+            for(String id:new String[]{"focus-menu","focus-modes","focus-bookmark","focus-exit","focus-next","focus-previous"})checkButton(id);
+            tap("focus-bookmark");await("marks.includes(page)",10);tap("focus-bookmark");await("!marks.includes(page)",10);
+            screenshot("focus-reader");tap("focus-exit");await("!document.body.classList.contains('immersive')",10);
+            js("screen('comfort')");tap("comfort-large");await("prefs.layouts.word==='width' && prefs.size===46 && prefs.englishSize===24",10);
+            js("screen('comfort')");tap("comfort-original");await("prefs.layouts.word==='fill' && prefs.size===36 && prefs.englishSize===20",10);
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden') && !!document.getElementById('plain-mode')",10);
             screenshot("modes");
             // Pick the large text mode first. Tests its responsive layout before requesting the second bundled PDF.
@@ -70,7 +76,7 @@ public class ReaderChecks extends Instrumentation {
             if(hasPdf(getTargetContext().getFilesDir())||hasPdf(getTargetContext().getCacheDir()))throw new AssertionError("Unexpected PDF copy in private storage");
             if(size(getTargetContext().getFilesDir())>2_000_000)throw new AssertionError("Unexpected full PDF copy in private files");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
-            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, no PDF copies\n");
+            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
         }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }

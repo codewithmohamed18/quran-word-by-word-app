@@ -1,8 +1,15 @@
-# Tajweed & Meaning — v1.8.1 reader update
+# Tajweed & Meaning — v1.8.2 comfortable reading
 
 [Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
-## What changed in v1.8.1
+## What changed in v1.8.2
+
+- Full-page focus view has safe floating menu/mode/bookmark and RTL page controls instead of full toolbars. Optional launch-in-focus and an unobstructed-page toggle. System safe areas remain enforced on Android and iOS.
+- Reading comfort presets: original v1.7, larger relaxed reading (scrolling PDF/46px Arabic/24px English), quiet evening, and full-page focus.
+- Word-by-word paper options now include warm parchment and high-contrast monochrome. Adjustable page contrast, paper warmth and an optional movable line guide. Original appearance remains the default; warmth changes displayed Tajweed colours only when explicitly enabled.
+- Swipe page turns can be disabled; buttons remain usable. All changes preserve bundled text/translation and work offline.
+
+## Existing v1.8.1 improvements
 
 - Restores v1.7 full-page PDF fill in all orientations by default. Arabic and English text sizes in mode 2 remain the original readable sizes; no automatic shrinking.
 - Four PDF layouts, saved independently for word-by-word and plain: v1.7 full page, original proportions, fit width with vertical scrolling, and crop to fill. Crop can hide edges; use fit width when preserving page shape with larger text matters.

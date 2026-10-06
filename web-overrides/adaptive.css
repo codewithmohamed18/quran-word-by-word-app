@@ -32,3 +32,16 @@ body.no-progress #reading-progress{display:none}
 .tools-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
 @media(max-height:450px){.drawer-head{padding:16px}.drawer-head .art{font-size:30px}}
 @media(min-width:700px){.sheet-content{width:100%;max-width:900px;margin:0 auto}}
+/* Focus reading keeps the page full screen; compact floating controls use the safe native viewport. */
+.focus-tools{display:none;position:fixed;inset:8px 8px auto;z-index:5;justify-content:space-between;pointer-events:none}
+.focus-tools button,.focus-bottom button{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;min-width:48px;min-height:48px;font-size:22px;box-shadow:0 2px 8px #0002;opacity:.92}
+.focus-bottom{display:none;position:fixed;bottom:8px;left:8px;right:8px;z-index:5;justify-content:space-between;align-items:center;pointer-events:none}
+.focus-bottom .focus-page{font-size:13px;padding:0 14px}
+body.immersive:not(.hide-focus-tools) .focus-tools,body.immersive:not(.hide-focus-tools) .focus-bottom{display:flex}
+#reading-guide{position:absolute;left:0;right:0;top:var(--guide-position,50%);height:0;border-top:2px solid var(--gold);box-shadow:0 -5px 12px #a37b3530;z-index:3;pointer-events:none;display:none}
+body.show-guide #reading-guide{display:block}
+#page{filter:brightness(var(--page-brightness)) contrast(var(--page-contrast,1)) sepia(var(--page-warmth,0))}
+body.word-reading[data-word-theme="warm"] .pdf-image{filter:grayscale(1) sepia(.32) contrast(1.08)}
+body.word-reading[data-word-theme="high-contrast"] .pdf-image{filter:grayscale(1) contrast(1.18)}
+.comfort-card{padding:16px;border:1px solid var(--line);border-radius:12px;text-align:left;background:var(--panel);margin-bottom:12px;width:100%}
+.comfort-card strong{display:block;font-size:18px;color:var(--gold)}.comfort-card small{display:block;color:var(--muted);line-height:1.6;margin-top:8px}

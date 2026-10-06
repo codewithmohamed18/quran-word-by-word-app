@@ -20,6 +20,6 @@ for name in ['word-by-word.pdf','plain-13line.pdf']:
 html=(web/'index.html').read_text().replace('</head>','<link rel="stylesheet" href="adaptive.css"></head>').replace('</body>','<script src="adaptive.js"></script></body>')
 (web/'index.html').write_text(html)
 for name in ['adaptive.css','adaptive.js']:(web/name).write_bytes((ROOT/'web-overrides'/name).read_bytes())
-(web/'app.js').write_text((web/'app.js').read_text().replace('Tajweed & Meaning · 1.7','Tajweed & Meaning · 1.8.1'))
+(web/'app.js').write_text((web/'app.js').read_text().replace('Tajweed & Meaning · 1.7','Tajweed & Meaning · 1.8.2'))
 (ROOT/'dist/quality-and-size.json').write_text(json.dumps(report,indent=2))
 print(json.dumps(report))
