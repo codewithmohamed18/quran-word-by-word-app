@@ -31,7 +31,7 @@ app = app.replace('Both modes work completely offline', 'Saved pages work offlin
 html = (output / 'index.html').read_text()
 html = html.replace('</head>', '<link rel="stylesheet" href="adaptive.css"><link rel="stylesheet" href="web.css"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.png"><meta name="apple-mobile-web-app-capable" content="yes"></head>')
 html = html.replace('<script src="app.js">', '<script src="page-meta.js"></script><script src="web-bridge.js"></script><script src="app.js">')
-html = html.replace('</body>', '<script src="adaptive.js"></script><script src="settings.js"></script><script src="web-install.js"></script></body>')
+html = html.replace('</body>', '<script src="adaptive.js"></script><script src="settings.js"></script><script src="web-install.js"></script><script src="web-reader.js"></script></body>')
 (output / 'index.html').write_text(html)
 
 pages = output / 'pages'
