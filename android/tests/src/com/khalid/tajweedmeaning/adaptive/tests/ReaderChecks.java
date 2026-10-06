@@ -56,7 +56,7 @@ public class ReaderChecks extends Instrumentation {
             js("window.studyRight=document.getElementById('pdf-stage').scrollLeft");tap("study-next");await("document.getElementById('pdf-stage').scrollLeft<window.studyRight-2",10);
             tap("study-next");tap("study-next");await("document.getElementById('pdf-stage').scrollTop>0",10);
             swipe(true);await("page===2",15);swipe(false);await("page===1",15);
-            js("prefs.swipeAction='pan';applyPrefs()");swipe(true);await("page===1",5);js("prefs.swipeAction='pages';applyPrefs();fullscreen(false);screen('comfort')");tap("comfort-original");
+            js("prefs.swipeAction='pan';applyPrefs()");swipe(true);await("page===1",5);js("prefs.swipeAction='pages';applyPrefs();fullscreen(false);screen('comfort')");tap("comfort-original");await("prefs.layouts.word==='fill' && prefs.wordStudy===false",10);
             js("screen('comfort')");tap("comfort-large");await("prefs.layouts.word==='width' && prefs.size===46 && prefs.englishSize===24",10);
             js("screen('comfort')");tap("comfort-original");await("prefs.layouts.word==='fill' && prefs.size===36 && prefs.englishSize===20",10);
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden') && !!document.getElementById('plain-mode')",10);
@@ -96,7 +96,7 @@ public class ReaderChecks extends Instrumentation {
             swipe(true);await("page===11",15);swipe(false);await("page===10",15);
             js("prefs.pdfZooms.plain=100;applyPrefs()");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
-            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, real RTL swipes in modes 1 and 3 at 100% and 150%, disabled swipes and pan preference, word study scrolling, no PDF copies\n");
+            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, real RTL swipes in modes 1 and 3 at 100%, word study at 200% and mode 3 at 150%, disabled swipes and pan preference, word study scrolling, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
         }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }
@@ -107,7 +107,7 @@ public class ReaderChecks extends Instrumentation {
     private void checkButton(String id)throws Exception{if(!"true".equals(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();return r.width>=44 && r.height>=44 && r.left>=0 && r.right<=innerWidth+1 && r.top>=0 && r.bottom<=innerHeight+1})()")))throw new AssertionError("Inaccessible toolbar control: "+id);}
     private void tap(String id)throws Exception{
         js("document.getElementById('"+id+"').scrollIntoView({block:'nearest'})");syncFrame();waitForIdleSync();
-        JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();let head=document.querySelector('#sheet:not(.hidden) .sheet-head');let top=Math.max(r.top,head?head.getBoundingClientRect().bottom:0),bottom=Math.min(r.bottom,innerHeight);return [r.left+r.width/2,(top+bottom)/2,innerWidth]})()"));
+        JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();let head=document.querySelector('#sheet:not(.hidden) .sheet-head');let top=Math.max(r.top,head?head.getBoundingClientRect().bottom:0),bottom=Math.min(r.bottom,innerHeight);let x=r.left+r.width/2,y=(top+bottom)/2;let hit=document.elementFromPoint(x,y)?.closest('button,input,select,textarea');if(hit?.id!=='"+id+"')throw Error('Tap target obstructed: '+hit?.id);return [x,y,innerWidth]})()"));
         int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
         float scale=(float)(width[0]/p.getDouble(2));float x=location[0]+(float)p.getDouble(0)*scale,y=location[1]+(float)p.getDouble(1)*scale;
         long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0);
@@ -122,6 +122,8 @@ public class ReaderChecks extends Instrumentation {
         long start=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(start,start,MotionEvent.ACTION_DOWN,a,y,0);sendPointerSync(down);down.recycle();
         for(int i=1;i<=12;i++){Thread.sleep(25);MotionEvent move=MotionEvent.obtain(start,SystemClock.uptimeMillis(),MotionEvent.ACTION_MOVE,a+(b-a)*i/12,y,0);sendPointerSync(move);move.recycle();}
         MotionEvent up=MotionEvent.obtain(start,SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,b,y,0);sendPointerSync(up);up.recycle();waitForIdleSync();Thread.sleep(700);
+        // Wait for native scroll momentum to finish before tapping a new panel.
+        String previous="";int stable=0;for(int i=0;i<15&&stable<3;i++){String position=js("(()=>{const s=document.getElementById('pdf-stage');return s?[Math.round(s.scrollLeft),Math.round(s.scrollTop)]:[]})()");stable=position.equals(previous)?stable+1:0;previous=position;Thread.sleep(150);}
     }
     private boolean hasPdf(File directory){File[] files=directory.listFiles();if(files!=null)for(File f:files){if(f.isDirectory()?hasPdf(f):f.getName().endsWith(".pdf"))return true;}return false;}
     private long size(File directory){long total=0;File[] files=directory.listFiles();if(files!=null)for(File f:files)total+=f.isDirectory()?size(f):f.length();return total;}

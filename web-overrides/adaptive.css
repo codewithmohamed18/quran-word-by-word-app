@@ -64,3 +64,12 @@ body.pdf-reading[data-pdf-enlarged="true"] .pdf-image{width:calc(100% * var(--pd
 #word-study-tools button{min-width:48px;min-height:48px;font-size:22px;background:transparent;border:0;color:var(--ink)}
 #word-study-tools span{font-size:12px}
 body.immersive[data-word-study="true"] #word-study-tools{display:flex}
+
+/* Controls should activate once, without a browser double-tap zoom. */
+button,input,select,textarea{touch-action:manipulation}
+@media(min-width:700px) and (max-height:500px){
+ .sheet-content.comfort-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:10px}
+ .comfort-options>.helper,.comfort-options>.action{grid-column:1 / -1}
+ .comfort-options>.comfort-card{margin:0;padding:12px;min-width:0}
+ .comfort-options>.comfort-card strong{font-size:17px}
+}
