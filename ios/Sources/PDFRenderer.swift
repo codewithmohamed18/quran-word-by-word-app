@@ -39,19 +39,25 @@ final class PDFRenderer {
             }
         }
         guard !crop.isNull, crop.width > 0, crop.height > 0 else { throw RenderError.missingPage }
-        let scale = CGFloat(pixelWidth) / crop.width
+        // Keep enlarged rendering bounded on older iPhones and iPads.
+        let budget = min(64.0 * 1024 * 1024, max(16.0 * 1024 * 1024, Double(ProcessInfo.processInfo.physicalMemory) / 100))
+        let safeWidth = mode == "word" ? min(pixelWidth, Int(sqrt(budget / (4 * Double(crop.height / crop.width))))) : pixelWidth
+        let scale = CGFloat(safeWidth) / crop.width
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         format.opaque = true
-        let size = CGSize(width: CGFloat(pixelWidth), height: ceil(crop.height * scale))
+        format.preferredRange = .standard
+        let size = CGSize(width: CGFloat(safeWidth), height: ceil(crop.height * scale))
         let renderer = UIGraphicsImageRenderer(size: size, format: format)
-        return renderer.jpegData(withCompressionQuality: 0.92) { context in
+        let draw: (UIGraphicsImageRendererContext) -> Void = { context in
             context.cgContext.setFillColor(UIColor.white.cgColor)
             context.cgContext.fill(CGRect(origin: .zero, size: size))
             let canvas = context.cgContext
             canvas.translateBy(x: -crop.minX * scale, y: crop.maxY * scale)
             canvas.scaleBy(x: scale, y: -scale)
+            canvas.interpolationQuality = .high
             canvas.drawPDFPage(page)
         }
+        return mode == "word" ? renderer.pngData(actions: draw) : renderer.jpegData(withCompressionQuality: 0.92, actions: draw)
     }
 }

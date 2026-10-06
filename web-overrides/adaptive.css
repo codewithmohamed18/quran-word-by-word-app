@@ -73,3 +73,16 @@ button,input,select,textarea{touch-action:manipulation}
  .comfort-options>.comfort-card{margin:0;padding:12px;min-width:0}
  .comfort-options>.comfort-card strong{font-size:17px}
 }
+
+/* Searchable sections keep the settings hierarchy consistent in every mode. */
+body.word-reading .pdf-image{filter:var(--word-filter,none)!important}
+.ordered-settings .settings-search{display:flex;gap:8px;align-items:center;margin:12px 0 16px}
+.settings-search .search{flex:1;min-width:0;font-size:16px}.settings-search button{min-width:48px;min-height:48px;border:1px solid var(--line);border-radius:10px}
+.ordered-settings .settings-section{border:1px solid var(--line);border-radius:12px;margin:12px 0;background:var(--panel)}
+.settings-section summary{min-height:52px;padding:14px 16px;cursor:pointer;font-weight:650;color:var(--gold);font-size:17px;touch-action:manipulation}
+.settings-section summary:focus-visible{outline:3px solid #218875;outline-offset:2px;border-radius:12px}
+.settings-section-body{padding:0 16px 14px}.settings-section-body>.setting{margin:0;border-bottom:1px solid var(--line);padding:14px 0}
+.settings-section-body>button{display:block;text-align:left;min-height:48px;width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;margin:10px 0 0}
+.ordered-settings [hidden]{display:none!important}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.profile-form{display:grid;gap:12px;margin:16px 0}.profile-form input{font-size:16px}.profile-row{display:flex;border:1px solid var(--line);border-radius:12px;margin:12px 0;align-items:center}.profile-load{flex:1;min-width:0;text-align:left;padding:16px}.profile-load strong{display:block;color:var(--gold);overflow-wrap:anywhere}.profile-load small{display:block;margin-top:6px;color:var(--muted)}.profile-remove{min-width:48px;min-height:48px;margin:4px}

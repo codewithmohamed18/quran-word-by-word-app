@@ -34,18 +34,46 @@ public class ReaderChecks extends Instrumentation {
             for(String id:new String[]{"menu","modes-button","bookmark","full","next","previous"})checkButton(id);
             await("document.body.dataset.pdfLayout==='fill' && getComputedStyle(document.getElementById('pdf-image')).objectFit==='fill'",10);
             await("Math.abs(document.getElementById('reader').getBoundingClientRect().top-document.querySelector('header').getBoundingClientRect().bottom)<2 && document.querySelector('header').getBoundingClientRect().height<=52",10);
+            await("document.getElementById('pdf-image').src.startsWith('data:image/png;base64,') && atob(document.getElementById('pdf-image').src.split(',')[1]).slice(1,4)==='PNG' && document.getElementById('pdf-image').naturalWidth>=2000",15);
             screenshot("word-reader");
             swipe(true);await("page===2",15);swipe(false);await("page===1",15);
             js("prefs.swipes=false;applyPrefs()");swipe(true);await("page===1",5);js("prefs.swipes=true;applyPrefs()");
             tap("menu");js("document.querySelector('[data-screen=settings]').id='settings-link'");tap("settings-link");
             await("!!document.getElementById('page-brightness') && document.getElementById('pdf-fit').options.length===4",10);
+            await("document.querySelectorAll('.settings-section').length===8 && document.querySelector('.settings-section').id==='settings-page'",10);
+            screenshot("organized-settings");
+            js("document.getElementById('settings-search').value='blur';document.getElementById('settings-search').dispatchEvent(new Event('input'))");
+            await("document.querySelectorAll('.settings-section:not([hidden])').length===1 && !document.getElementById('word-quality').closest('.setting').hidden",10);
+            tap("clear-settings-search");await("document.querySelectorAll('.settings-section:not([hidden])').length===8",10);
+            js("window.clearPixels=document.getElementById('pdf-image').naturalWidth;document.getElementById('word-quality').value='fast';document.getElementById('word-quality').dispatchEvent(new Event('change'))");
+            await("prefs.wordQuality==='fast' && document.getElementById('pdf-image')?.complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-image').naturalWidth<=window.clearPixels",60);
+            js("document.getElementById('word-quality').value='clear';document.getElementById('word-quality').dispatchEvent(new Event('change'))");
+            await("prefs.wordQuality==='clear' && document.getElementById('pdf-image')?.complete && document.getElementById('pdf-image').src.startsWith('data:image/png;base64,') && document.getElementById('pdf-image').naturalWidth>=window.clearPixels",60);
+            await("document.documentElement.style.getPropertyValue('--word-filter').includes('word-edges-gentle')",10);
+            if(profile.equals("pixel-cutout")){
+                js("prefs.wordQuality='maximum';applyPrefs()");await("document.getElementById('pdf-image')?.complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-image').naturalWidth<=3200",60);
+                runOnMainSync(()->activity.finish());waitForIdleSync();
+                activity=startActivitySync(new Intent().setClassName(getTargetContext(),"com.khalid.tajweedmeaning.adaptive.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
+                await("prefs.wordQuality==='maximum' && document.getElementById('pdf-image')?.complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-image').src.startsWith('data:image/png;base64,')",60);
+                js("prefs.wordQuality='clear';applyPrefs();screen('settings')");
+                await("document.getElementById('pdf-image')?.complete && document.getElementById('pdf-image').naturalWidth>=2000",60);
+            }
             for(String layout:new String[]{"proportions","width","cover","fill"}){
                 js("document.getElementById('pdf-fit').value='"+layout+"';document.getElementById('pdf-fit').dispatchEvent(new Event('change'))");
                 await("document.body.dataset.pdfLayout==='"+layout+"'",5);
             }
             tap("large-controls");await("document.querySelector('header').getBoundingClientRect().height===64",5);
             tap("large-controls");await("document.querySelector('header').getBoundingClientRect().height===52",5);
-            js("closePanels()");
+            tap("reading-profiles");js("document.getElementById('profile-name').value='QA reading'");tap("save-profile");
+            await("load('tm-reading-profiles',[]).length===1 && load('tm-reading-profiles',[])[0].name==='QA reading'",10);
+            js("prefs.brightness=70;applyPrefs();screen('profiles');document.querySelector('[data-profile]').id='qa-load-profile'");tap("qa-load-profile");
+            await("clamp(prefs.brightness,50,100,100)===100 && prefs.layouts.word==='fill'",10);
+            js("screen('backup')");await("JSON.parse(document.getElementById('backup-text').value).data['tm-reading-profiles'][0].name==='QA reading'",10);
+            await("(()=>{const b=JSON.parse(document.getElementById('backup-text').value);b.data['tm-reading-profiles'][0].prefs.wordQuality='invalid';try{validateBackup(b);return false}catch(e){return e.message.includes('clarity')}})()",10);
+            js("screen('settings');prefs.layouts={word:'cover',plain:'width'};applyPrefs()");tap("reset-mode-layout");
+            await("prefs.layouts.word==='fill' && prefs.layouts.plain==='width' && load('tm-reading-profiles',[])[0].name==='QA reading'",10);
+            js("prefs.layouts.plain='fill';applyPrefs();closePanels()");
             tap("full");await("document.body.classList.contains('immersive')",10);
             for(String id:new String[]{"focus-menu","focus-modes","focus-bookmark","focus-exit","focus-next","focus-previous"})checkButton(id);
             tap("focus-bookmark");await("marks.includes(page)",10);tap("focus-bookmark");await("!marks.includes(page)",10);
@@ -80,6 +108,7 @@ public class ReaderChecks extends Instrumentation {
             await("document.getElementById('bookmark') && document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",30);
             await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
             await("document.body.dataset.pdfLayout==='fill' && prefs.layouts.word==='fill'",10);
+            await("load('tm-reading-profiles',[])[0].name==='QA reading' && pdfImages.size<=3",10);
             screenshot("reader");
             js("screen('note');document.getElementById('note-text').value='Remember this page'");tap("save-note");
             await("load('tm-bookmark-notes',{})['plain:'+page]==='Remember this page'",10);
@@ -96,7 +125,7 @@ public class ReaderChecks extends Instrumentation {
             swipe(true);await("page===11",15);swipe(false);await("page===10",15);
             js("prefs.pdfZooms.plain=100;applyPrefs()");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
-            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, real RTL swipes in modes 1 and 3 at 100%, word study at 200% and mode 3 at 150%, disabled swipes and pan preference, word study scrolling, no PDF copies\n");
+            result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, real RTL swipes in modes 1 and 3 at 100%, word study at 200% and mode 3 at 150%, disabled swipes and pan preference, word study scrolling, PNG mode 1 display, memory-bounded clarity changes, eight settings sections, settings search, saved setup loading and persistence, nested setup backup validation, no PDF copies\n");
             finish(Activity.RESULT_OK,result);
         }catch(Throwable error){StringWriter trace=new StringWriter();error.printStackTrace(new PrintWriter(trace));result.putString("stream","FAIL: "+profile+" "+trace.toString()+"\n");error.printStackTrace();try{screenshot("failure");}catch(Exception ignored){}finish(Activity.RESULT_CANCELED,result);}
     }
@@ -106,8 +135,10 @@ public class ReaderChecks extends Instrumentation {
     private void syncFrame()throws Exception{CountDownLatch done=new CountDownLatch(1);runOnMainSync(()->web.postVisualStateCallback(SystemClock.uptimeMillis(),new WebView.VisualStateCallback(){@Override public void onComplete(long request){web.invalidate();done.countDown();}}));if(!done.await(15,TimeUnit.SECONDS))throw new AssertionError("WebView frame did not commit");Thread.sleep(500);}
     private void checkButton(String id)throws Exception{if(!"true".equals(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();return r.width>=44 && r.height>=44 && r.left>=0 && r.right<=innerWidth+1 && r.top>=0 && r.bottom<=innerHeight+1})()")))throw new AssertionError("Inaccessible toolbar control: "+id);}
     private void tap(String id)throws Exception{
+        String parent=js("(()=>{const e=document.getElementById('"+id+"');return e.tagName==='SUMMARY'?'':(e.closest('details:not([open])')?.querySelector('summary').id||'')})()");
+        String summary=new JSONArray("["+parent+"]").getString(0);if(!summary.isEmpty())tap(summary);
         js("document.getElementById('"+id+"').scrollIntoView({block:'nearest'})");syncFrame();waitForIdleSync();
-        JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();let head=document.querySelector('#sheet:not(.hidden) .sheet-head');let top=Math.max(r.top,head?head.getBoundingClientRect().bottom:0),bottom=Math.min(r.bottom,innerHeight);let x=r.left+r.width/2,y=(top+bottom)/2;let hit=document.elementFromPoint(x,y)?.closest('button,input,select,textarea');if(hit?.id!=='"+id+"')throw Error('Tap target obstructed: '+hit?.id);return [x,y,innerWidth]})()"));
+        JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();let head=document.querySelector('#sheet:not(.hidden) .sheet-head');let top=Math.max(r.top,head?head.getBoundingClientRect().bottom:0),bottom=Math.min(r.bottom,innerHeight);let x=r.left+r.width/2,y=(top+bottom)/2;let hit=document.elementFromPoint(x,y)?.closest('button,input,select,textarea,summary');if(hit?.id!=='"+id+"')throw Error('Tap target obstructed: '+hit?.id);return [x,y,innerWidth]})()"));
         int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
         float scale=(float)(width[0]/p.getDouble(2));float x=location[0]+(float)p.getDouble(0)*scale,y=location[1]+(float)p.getDouble(1)*scale;
         long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0);

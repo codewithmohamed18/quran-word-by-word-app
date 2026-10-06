@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
     private ParcelFileDescriptor wordDescriptor,plainDescriptor;
     private JSONArray crops,plainCrops;
     private volatile boolean volume,dead;
+    private volatile int wordQuality=1,wordGeneration=0;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -71,6 +72,7 @@ public class MainActivity extends Activity {
 
     public class Bridge {
         @JavascriptInterface public void pdfPage(int n){render(false,n);}
+        @JavascriptInterface public void pdfQuality(int level){int selected=Math.max(0,Math.min(2,level));if(selected!=wordQuality){wordQuality=selected;wordGeneration++;}}
         @JavascriptInterface public void plainPage(int n){render(true,n);}
         @JavascriptInterface public void awake(boolean on){runOnUiThread(()->{if(on)getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);});}
         @JavascriptInterface public void volumeKeys(boolean on){volume=on;}
@@ -116,8 +118,11 @@ public class MainActivity extends Activity {
 
     private void render(boolean isPlain,int number){
         if(number<1||number>(isPlain?850:960)||dead)return;
-        final int pixelWidth=Math.min(2400,Math.max(1600,web.getWidth()*2));
+        final int requestedQuality=wordQuality,generation=wordGeneration;
+        final int viewport=Math.max(1,web.getWidth());
+        final int requestedWidth=isPlain||requestedQuality==0?Math.min(2400,Math.max(1600,viewport*2)):requestedQuality==1?Math.min(2800,Math.max(2200,viewport*2)):Math.min(3200,Math.max(2400,viewport*3));
         worker.execute(()->{
+            if(!isPlain&&generation!=wordGeneration)return;
             Bitmap bitmap=null;
             try {
                 if(isPlain && plain==null){plainDescriptor=bundledDescriptor("plain-13line.pdf");plain=new PdfRenderer(plainDescriptor);plainCrops=new JSONArray(readAsset("plain-crops.json"));}
@@ -126,20 +131,27 @@ public class MainActivity extends Activity {
                 try(PdfRenderer.Page page=renderer.openPage(number-1)) {
                     float x=0,y=0,w=page.getWidth(),h=page.getHeight();
                     {JSONArray c=(isPlain?plainCrops:crops).getJSONArray(number-1);x=(float)c.getDouble(0);y=(float)c.getDouble(1);w=(float)c.getDouble(2)-x;h=(float)c.getDouble(3)-y;}
+                    // Bound the bitmap independently of requested quality on smaller-memory phones.
+                    long bitmapBudget=Math.max(16L*1024*1024,Math.min(64L*1024*1024,Runtime.getRuntime().maxMemory()/8));
+                    int pixelWidth=isPlain?requestedWidth:Math.min(requestedWidth,(int)Math.sqrt(bitmapBudget/(4.0*(h/w))));
                     float scale=pixelWidth/w;
                     bitmap=Bitmap.createBitmap(pixelWidth,(int)Math.ceil(h*scale),Bitmap.Config.ARGB_8888);
                     bitmap.eraseColor(Color.WHITE);Matrix transform=new Matrix();transform.setScale(scale,scale);transform.postTranslate(-x*scale,-y*scale);
                     page.render(bitmap,null,transform,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-                    ByteArrayOutputStream bytes=new ByteArrayOutputStream();bitmap.compress(Bitmap.CompressFormat.JPEG,94,bytes);
+                    ByteArrayOutputStream bytes=new ByteArrayOutputStream();bitmap.compress(isPlain?Bitmap.CompressFormat.JPEG:Bitmap.CompressFormat.PNG,isPlain?94:100,bytes);
                     String data=Base64.encodeToString(bytes.toByteArray(),Base64.NO_WRAP);
-                    reply(isPlain,number,data,null);
+                    reply(isPlain,number,isPlain?data:"data:image/png;base64,"+data,null,generation);
                 }
-            }catch(Exception error){reply(isPlain,number,null,"Unable to display this page. Please try again.");}
+            }catch(Exception | OutOfMemoryError error){reply(isPlain,number,null,"Unable to display this page. Please try the Fast clarity setting.",generation);}
             finally {if(bitmap!=null)bitmap.recycle();}
         });
     }
     private String readAsset(String name) throws IOException {try(InputStream in=getAssets().open(name);ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n;while((n=in.read(b))>=0)out.write(b,0,n);return out.toString("UTF-8");}}
-    private void reply(boolean plain,int n,String data,String error){runOnUiThread(()->{if(!dead)web.evaluateJavascript("window."+(plain?"receivePlainPdf":"receivePdf")+"("+n+","+(data==null?"null":JSONObject.quote(data))+","+(error==null?"null":JSONObject.quote(error))+")",null);});}
+    private void reply(boolean plain,int n,String data,String error,int generation){
+        // Quote larger lossless frames on the PDF worker, before touching the UI thread.
+        final String script="window."+(plain?"receivePlainPdf":"receivePdf")+"("+n+","+(data==null?"null":JSONObject.quote(data))+","+(error==null?"null":JSONObject.quote(error))+")";
+        runOnUiThread(()->{if(!dead&&(plain||generation==wordGeneration))web.evaluateJavascript(script,null);});
+    }
     @Override public boolean onKeyDown(int code,KeyEvent event){if(volume && (code==KeyEvent.KEYCODE_VOLUME_DOWN||code==KeyEvent.KEYCODE_VOLUME_UP)){web.evaluateJavascript("window.turnPage("+(code==KeyEvent.KEYCODE_VOLUME_DOWN?1:-1)+")",null);return true;}return super.onKeyDown(code,event);}
     @Override public void onBackPressed(){web.evaluateJavascript("window.handleBack()",handled->{if(!"true".equals(handled))finish();});}
     @Override protected void onDestroy(){dead=true;web.removeJavascriptInterface("Android");web.destroy();worker.execute(()->{if(word!=null)word.close();if(plain!=null)plain.close();new Handler(proxyThread.getLooper()).post(()->proxyThread.quitSafely());});worker.shutdown();super.onDestroy();}

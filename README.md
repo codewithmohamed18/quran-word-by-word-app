@@ -1,12 +1,19 @@
-# Tajweed & Meaning — v1.8.4 full-screen Mushaf
+# Tajweed & Meaning — v1.8.5 clearer word pages & organized settings
 
 [Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
-## What changed in v1.8.4
+## What changed in v1.8.5
+
+- Mode 1 uses lossless display frames and memory-bounded rendering levels, plus gentle edge clarity that can be disabled.
+- Settings have eight ordered, searchable sections, with explicit mode-specific headings.
+- Save up to eight named reading setups, restore them with one tap, and include them in offline backups.
+- Reset the current mode’s layout without erasing bookmarks or changing other modes’ layouts.
+
+## Existing v1.8.3 Mushaf improvements
 
 - Mode 3 now trims only the unused scanned margins at rendering time, retaining all detected ink, headings, border, side notes and printed page numbers. The PDF itself is unchanged. `config/plain-crops.json` records 850 page-specific bounds; preparation recomputes and verifies every rectangle.
 - Mode 3 defaults to full-page focus, with only menu/bookmark corner controls and no floating footer. Tap the page to restore the full toolbar. Settings can enable the footer, secondary controls or standard reading view.
-- PDF magnification 100–250%, saved per PDF mode. Enlarged pages scroll/pan rather than turning on horizontal swipes. Start at the Arabic right-hand edge. Existing pinch zoom remains available.
+- PDF magnification 100–250%, saved per PDF mode. The gesture setting chooses page turns or horizontal panning. Start at the Arabic right-hand edge. Existing pinch zoom remains available.
 - Google Play reader feedback informed this focus on small-screen enlargement and overlays that do not obscure text: https://play.google.com/store/apps/details?id=org.haris.quran
 
 ## Existing v1.8.2 improvements
@@ -69,3 +76,10 @@ The repository is currently private. Downloads require repository access until i
 Swipe right for the next page and left for the previous page in both PDF modes. The master switch is in Settings. The new Horizontal gesture setting chooses page turns (default, also at PDF magnification) or sideways PDF panning. Native pinch zoom pans until zoomed back out; vertical scrolling stays available in either gesture mode.
 
 Mode 1 → Reading comfort → Word-by-word study enlarges the original scan to 200% and enters a safe full-screen view. Use the up/down section controls to move across and down with overlap, then advance to the next page at the end. Choose 50%, 75% or 90% screen steps in Settings. No PDF words are cut, rearranged or rewritten. Choose Original v1.7 to restore the original full-page size. Mode 1 can optionally open in full-page view on future launches.
+
+
+### 1.8.5 page clarity and settings
+
+Mode 1 uses lossless PNG frames instead of JPEG recompression, with Clear (default), Fast and Maximum rendering levels. Bitmap dimensions are capped by a memory budget on Android and iOS. A smaller three-frame cache bounds retained image data, and stale quality requests cannot replace the selected quality. Optional gentle/strong edge clarity improves edge emphasis without reconstructing or changing the source Arabic/translation. Mode 3 retains its rendering pipeline. The original scanned images are about 765 × 1040 pixels; no rendering setting can recover detail absent from those scans. The PDF image streams remain byte-for-byte unchanged.
+
+Settings now use eight ordered sections, with mode-specific headings and relevant default expansion. Search filters settings and restores the prior section state when cleared. Saved reading setups preserve the selected mode, focus state and settings (up to eight named setups), are stored offline and included in validated backups. Reset this mode’s layout leaves other modes’ layouts, bookmarks and reading history intact.

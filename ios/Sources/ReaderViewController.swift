@@ -1,12 +1,14 @@
 import UIKit
 import WebKit
 
-/// The supplied HTML/JavaScript is unchanged. This bridge implements its Android API on iOS.
+/// Safe-area host and native rendering bridge for the shared offline reader.
 final class ReaderViewController: UIViewController, WKScriptMessageHandler, WKNavigationDelegate {
     private var web: WKWebView!
     private let renderer = PDFRenderer()
     private var immersive = false
     private var dark = false
+    private var wordQuality = 1
+    private var wordGeneration = 0
     override var prefersStatusBarHidden: Bool { immersive }
     override var preferredStatusBarStyle: UIStatusBarStyle { dark ? .lightContent : .darkContent }
 
@@ -18,7 +20,7 @@ final class ReaderViewController: UIViewController, WKScriptMessageHandler, WKNa
         (() => {
           const send = (method,value) => window.webkit.messageHandlers.native.postMessage({method,value});
           window.Android = {
-            pdfPage:n=>send('word',n), plainPage:n=>send('plain',n),
+            pdfPage:n=>send('word',n), plainPage:n=>send('plain',n), pdfQuality:n=>send('pdfQuality',n),
             awake:v=>send('awake',v), fullscreen:v=>send('fullscreen',v)
           };
           document.addEventListener('DOMContentLoaded',()=>{
@@ -60,19 +62,30 @@ final class ReaderViewController: UIViewController, WKScriptMessageHandler, WKNa
         case "word", "plain":
             guard let page = body["value"] as? Int,
                   (method == "word" ? 1...960 : 4...850).contains(page) else { return }
-            let pixels = min(2400, max(1600, Int(view.bounds.width * UIScreen.main.scale * 2)))
+            let width = Int(view.bounds.width * UIScreen.main.scale)
+            let pixels = method == "plain" || wordQuality == 0 ? min(2400, max(1600, width * 2)) : wordQuality == 1 ? min(2800, max(2200, width * 2)) : min(3200, max(2400, width * 3))
+            let generation = wordGeneration
             renderer.render(mode: method, number: page, pixelWidth: pixels) { [weak self] result in
-                guard let self = self else { return }
-                let arguments: [Any]
-                switch result {
-                case .success(let data): arguments = [page, data.base64EncodedString(), NSNull()]
-                case .failure: arguments = [page, NSNull(), "This page could not be rendered. Please try again."]
+                guard let self = self, method == "plain" || generation == self.wordGeneration else { return }
+                // Encoding larger lossless frames should not stall page controls/animations.
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let arguments: [Any]
+                    switch result {
+                    case .success(let data): arguments = [page, (method == "word" ? "data:image/png;base64," : "") + data.base64EncodedString(), NSNull()]
+                    case .failure: arguments = [page, NSNull(), "This page could not be rendered. Please try again."]
+                    }
+                    guard let json = try? JSONSerialization.data(withJSONObject: arguments),
+                          let text = String(data: json, encoding: .utf8) else { return }
+                    let callback = method == "word" ? "receivePdf" : "receivePlainPdf"
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, method == "plain" || generation == self.wordGeneration else { return }
+                        self.web.evaluateJavaScript("window.\(callback)(...\(text))", completionHandler: nil)
+                    }
                 }
-                guard let json = try? JSONSerialization.data(withJSONObject: arguments),
-                      let text = String(data: json, encoding: .utf8) else { return }
-                let callback = method == "word" ? "receivePdf" : "receivePlainPdf"
-                self.web.evaluateJavaScript("window.\(callback)(...\(text))", completionHandler: nil)
             }
+        case "pdfQuality":
+            let selected = min(2, max(0, (body["value"] as? Int) ?? 1))
+            if selected != wordQuality { wordQuality = selected; wordGeneration += 1 }
         case "awake": UIApplication.shared.isIdleTimerDisabled = (body["value"] as? Bool) ?? false
         case "fullscreen":
             immersive = (body["value"] as? Bool) ?? false

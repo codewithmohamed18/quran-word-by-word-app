@@ -17,6 +17,17 @@ final class ReaderUITests: XCTestCase {
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Page 2 / 960")).firstMatch.waitForExistence(timeout: 30))
         app.buttons["Previous page"].tap()
         XCTAssertTrue(first.waitForExistence(timeout: 30))
+        app.buttons["Open menu"].tap()
+        app.webViews.firstMatch.swipeUp()
+        let settings = app.buttons.matching(NSPredicate(format: "label ENDSWITH %@", "Settings")).firstMatch
+        XCTAssertTrue(settings.waitForExistence(timeout: 15))
+        settings.tap()
+        let search = app.searchFields["Search settings"].waitForExistence(timeout: 5) ? app.searchFields["Search settings"] : app.textFields["Search settings"]
+        XCTAssertTrue(search.waitForExistence(timeout: 15))
+        search.tap()
+        search.typeText("blur")
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Mode 1 page clarity")).firstMatch.waitForExistence(timeout: 15))
+        app.buttons["Back to reader"].tap()
         app.buttons["Reading modes"].tap()
         let tajweed = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "2. Colour Tajweed with meaning")).firstMatch
         XCTAssertTrue(tajweed.waitForExistence(timeout: 15))
