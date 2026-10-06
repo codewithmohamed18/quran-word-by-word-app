@@ -2,6 +2,24 @@
 
 [Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
 
+## iPhone, iPad and browser version
+
+**[Open the public Qur’an reader](https://tajweed-meaning-ipad.lazify.chatgpt.site)** — no IPA signing, payment or account required.
+
+On iPhone or iPad, open the link in Safari and choose **Share → Add to Home Screen → Add**. Send this same link to anyone using WhatsApp, email or text.
+
+All three reading modes are included. Open **Menu → Save for offline reading** to download all scans (about 210 MB); browser storage may be cleared or evicted. Bookmarks and settings stay on each device.
+
+The Safari source is in [`web-safari/`](web-safari/). To rebuild:
+
+```sh
+pip install PyMuPDF==1.26.6 Pillow
+python scripts/build-web.py
+python -m http.server 8000 --directory dist/web
+```
+
+Publish the contents of `dist/web` on an HTTPS static host for Home Screen and offline support. The builder reconstructs verified source assets and extracts all 1810 page scans without JPEG recompression. Generated files are ignored; the existing payload contains the original source data.
+
 ## What changed in v1.8.5
 
 - Mode 1 uses lossless display frames and memory-bounded rendering levels, plus gentle edge clarity that can be disabled.
@@ -68,7 +86,7 @@ An **UNSIGNED IPA cannot be installed directly** on an iPhone. Sign locally or c
 
 The exact supplied v1.7 APK is stored in `payload/` as binary chunks because of repository size limits. `payload-manifest.json` records its checksum and asset hashes. `scripts/prepare.py` reconstructs and verifies it before extraction. These archived bytes are never changed by the adaptive build. The original APK is included alongside v1.8 in releases.
 
-The repository is currently private. Downloads require repository access until its owner makes it public. No advertisements, login, file picker or online PDF download are added.
+The repository is public. Release downloads and source are available to everyone. No advertisements, login, file picker or online PDF download are added.
 
 
 ### 1.8.4 reading improvements
