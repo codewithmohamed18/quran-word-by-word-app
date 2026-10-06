@@ -138,7 +138,7 @@ public class ReaderChecks extends Instrumentation {
     private void tap(String id)throws Exception{
         String parent=js("(()=>{const e=document.getElementById('"+id+"');return e.tagName==='SUMMARY'?'':(e.closest('details:not([open])')?.querySelector('summary').id||'')})()");
         String summary=new JSONArray("["+parent+"]").getString(0);if(!summary.isEmpty())tap(summary);
-        js("document.getElementById('"+id+"').scrollIntoView({block:'nearest'})");syncFrame();waitForIdleSync();
+        js("document.getElementById('"+id+"').scrollIntoView({block:'center',behavior:'instant'})");syncFrame();waitForIdleSync();
         JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();let head=document.querySelector('#sheet:not(.hidden) .sheet-head');let top=Math.max(r.top,head?head.getBoundingClientRect().bottom:0),bottom=Math.min(r.bottom,innerHeight);let x=r.left+r.width/2,y=(top+bottom)/2;let hit=document.elementFromPoint(x,y)?.closest('button,input,select,textarea,summary');if(hit?.id!=='"+id+"')throw Error('Tap target obstructed: '+hit?.id);return [x,y,innerWidth]})()"));
         int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
         float scale=(float)(width[0]/p.getDouble(2));float x=location[0]+(float)p.getDouble(0)*scale,y=location[1]+(float)p.getDouble(1)*scale;
