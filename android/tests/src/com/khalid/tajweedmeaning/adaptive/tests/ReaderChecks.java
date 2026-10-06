@@ -11,8 +11,9 @@ import java.util.concurrent.*;
 
 /** Device checks use real pointer taps, not JavaScript click(), to catch inaccessible controls. */
 public class ReaderChecks extends Instrumentation {
-    private Activity activity; private WebView web; private String profile;
+    private volatile Activity activity; private volatile WebView web; private String profile;
     @Override public void onCreate(Bundle args){super.onCreate(args);profile=args.getString("profile","phone");start();}
+    @Override public void callActivityOnResume(Activity current){super.callActivityOnResume(current);activity=current;web=findWeb(current.getWindow().getDecorView());}
     @Override public void onStart(){
         Bundle result=new Bundle();
         try {

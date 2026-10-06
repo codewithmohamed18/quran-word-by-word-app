@@ -3,8 +3,8 @@ set -euo pipefail
 mkdir -p dist/android-checks
 trap 'adb logcat -d > dist/android-checks/device-logcat.txt || true' EXIT
 FAILURES=0
-adb install -r dist/Tajweed-and-Meaning-v1.8-Adaptive.apk
-adb install -r android/tests/build/reader-tests.apk
+adb install --no-incremental -r dist/Tajweed-and-Meaning-v1.8-Adaptive.apk
+adb install --no-incremental -r android/tests/build/reader-tests.apk
 # The stock Quickstep launcher can ANR when wm density is changed repeatedly.
 # This disposable emulator tests the reader directly, so remove the launcher from the test session.
 adb shell am force-stop com.android.launcher3
@@ -29,6 +29,9 @@ run_case() {
 }
 adb shell wm size 1080x2400
 adb shell wm density 420
+# Boot-time dynamic-colour overlays recreate activities asynchronously. Let the disposable
+# emulator finish applying them before instrumentation captures its first activity.
+sleep 20
 run_case pixel-cutout
 adb shell wm size 720x1280
 adb shell wm density 360
