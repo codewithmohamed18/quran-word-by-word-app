@@ -14,7 +14,7 @@ run_case() {
   adb shell pm clear com.khalid.tajweedmeaning.adaptive >/dev/null
   adb shell am instrument -w -e profile "$profile" com.khalid.tajweedmeaning.adaptive.tests/com.khalid.tajweedmeaning.adaptive.tests.ReaderChecks | tee "dist/android-checks/$profile.txt"
   adb pull /sdcard/Android/data/com.khalid.tajweedmeaning.adaptive/files/checks dist/android-checks/ >/dev/null
-  if ! rg -q 'PASS:' "dist/android-checks/$profile.txt"; then
+  if ! grep -q 'PASS:' "dist/android-checks/$profile.txt"; then
     adb logcat -d -s AndroidRuntime > "dist/android-checks/$profile-crash.txt"
     exit 1
   fi

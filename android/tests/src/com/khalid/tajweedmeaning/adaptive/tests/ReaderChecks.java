@@ -28,6 +28,7 @@ public class ReaderChecks extends Instrumentation {
                 if(web.getHeight()>activity.getWindow().getDecorView().getHeight()-safe.top-safe.bottom)throw new AssertionError("WebView overlaps bottom navigation");
             });
             for(String id:new String[]{"menu","modes-button","bookmark","full","next","previous"})checkButton(id);
+            screenshot("word-reader");
             tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden') && !!document.getElementById('plain-mode')",10);
             screenshot("modes");
             // Pick the large text mode first. Tests its responsive layout before requesting the second bundled PDF.
@@ -35,12 +36,13 @@ public class ReaderChecks extends Instrumentation {
             tap("modes-button");tap("plain-mode");
             await("document.querySelector('#pdf-stage img') && document.querySelector('#pdf-stage img').complete && document.querySelector('#pdf-stage img').naturalWidth>0",60);
             tap("bookmark");await("document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",10);
-            activity.finish();waitForIdleSync();
+            runOnMainSync(()->activity.finish());waitForIdleSync();
             activity=startActivitySync(new Intent().setClassName(getTargetContext(),"com.khalid.tajweedmeaning.adaptive.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             runOnMainSync(()->web=findWeb(activity.getWindow().getDecorView()));
             await("document.getElementById('bookmark') && document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",30);
             await("document.querySelector('#pdf-stage img') && document.querySelector('#pdf-stage img').complete && document.querySelector('#pdf-stage img').naturalWidth>0",60);
             screenshot("reader");
+            if(hasPdf(getTargetContext().getFilesDir())||hasPdf(getTargetContext().getCacheDir()))throw new AssertionError("Unexpected PDF copy in private storage");
             if(size(getTargetContext().getFilesDir())>2_000_000)throw new AssertionError("Unexpected full PDF copy in private files");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
             result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, no PDF copies\n");
@@ -59,6 +61,7 @@ public class ReaderChecks extends Instrumentation {
         long now=SystemClock.uptimeMillis();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0),up=MotionEvent.obtain(now,now+80,MotionEvent.ACTION_UP,x,y,0);
         sendPointerSync(down);sendPointerSync(up);down.recycle();up.recycle();waitForIdleSync();Thread.sleep(200);
     }
+    private boolean hasPdf(File directory){File[] files=directory.listFiles();if(files!=null)for(File f:files){if(f.isDirectory()?hasPdf(f):f.getName().endsWith(".pdf"))return true;}return false;}
     private long size(File directory){long total=0;File[] files=directory.listFiles();if(files!=null)for(File f:files)total+=f.isDirectory()?size(f):f.length();return total;}
     private void screenshot(String name)throws Exception{File out=new File(getTargetContext().getExternalFilesDir(null),"checks");out.mkdirs();Bitmap b=getUiAutomation().takeScreenshot();try(FileOutputStream stream=new FileOutputStream(new File(out,profile+"-"+name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,stream);}b.recycle();}
 }

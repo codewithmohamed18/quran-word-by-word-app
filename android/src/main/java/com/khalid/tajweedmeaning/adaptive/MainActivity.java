@@ -3,7 +3,6 @@ package com.khalid.tajweedmeaning.adaptive;
 import android.app.Activity;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.pdf.PdfRenderer;
@@ -27,12 +26,18 @@ public class MainActivity extends Activity {
     private PdfRenderer word,plain;
     private ParcelFileDescriptor wordDescriptor,plainDescriptor;
     private JSONArray crops;
-    private boolean immersive,volume,dead;
+    private volatile boolean volume,dead;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         proxyThread.start();
         if(Build.VERSION.SDK_INT>=30) getWindow().setDecorFitsSystemWindows(false);
+        else getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        if(Build.VERSION.SDK_INT>=28) {
+            WindowManager.LayoutParams attributes=getWindow().getAttributes();
+            attributes.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(attributes);
+        }
         root=new FrameLayout(this); root.setBackgroundColor(Color.rgb(255,253,247));
         web=new WebView(this);
         root.addView(web,new FrameLayout.LayoutParams(-1,-1)); setContentView(root);
@@ -70,18 +75,24 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void awake(boolean on){runOnUiThread(()->{if(on)getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);});}
         @JavascriptInterface public void volumeKeys(boolean on){volume=on;}
         @JavascriptInterface public void fullscreen(boolean on){runOnUiThread(()->{
-            immersive=on;
             if(Build.VERSION.SDK_INT>=30) {
                 WindowInsetsController c=getWindow().getInsetsController();
                 c.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
                 if(on)c.hide(WindowInsets.Type.systemBars());else c.show(WindowInsets.Type.systemBars());
-            } else web.setSystemUiVisibility(on ? View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION : View.SYSTEM_UI_FLAG_VISIBLE);
+            } else {
+                View decor=getWindow().getDecorView();int hide=View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+                decor.setSystemUiVisibility((decor.getSystemUiVisibility()&~hide)|(on?hide:0));
+            }
             root.requestApplyInsets();
         });}
         @JavascriptInterface public void appearance(boolean dark){runOnUiThread(()->{
             int color=dark?Color.rgb(21,30,27):Color.rgb(255,253,247);root.setBackgroundColor(color);
             getWindow().setStatusBarColor(color);getWindow().setNavigationBarColor(color);
             if(Build.VERSION.SDK_INT>=30) getWindow().getInsetsController().setSystemBarsAppearance(dark?0:WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            else {
+                View decor=getWindow().getDecorView();int light=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                decor.setSystemUiVisibility((decor.getSystemUiVisibility()&~light)|(dark?0:light));
+            }
         });}
     }
 
