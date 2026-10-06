@@ -86,10 +86,10 @@ window.addEventListener('resize',()=>requestAnimationFrame(readerAppearance));
 // Margin-free native rendering + full-page layout is the default only for mode 3.
 if(load('tm-mushaf-layout',0)<1){prefs.layouts={...(prefs.layouts||{}),plain:'fill'};prefs.pdfZooms={...(prefs.pdfZooms||{}),plain:100};prefs.plainFullscreen=true;prefs.plainMinimal=true;prefs.plainFooter=false;save('tm-mushaf-layout',1)}
 const zoomForMode=()=>clamp(prefs.pdfZooms?.[mode],100,250,100);
-let lastZoomPosition='';
-function alignMagnifiedPage(){const stage=$('pdf-stage');if(!stage||zoomForMode()===100)return;const key=mode+':'+page+':'+zoomForMode();if(key!==lastZoomPosition){stage.scrollTop=0;stage.scrollLeft=stage.scrollWidth-stage.clientWidth;lastZoomPosition=key}}
+let lastZoomPosition='',lastZoomStage=null;
+function alignMagnifiedPage(){const stage=$('pdf-stage');const image=$('pdf-image');if(!stage||zoomForMode()===100||!image||image.dataset.page!==String(page)||!image.complete||!image.naturalWidth)return;const key=mode+':'+page+':'+zoomForMode();if(key!==lastZoomPosition||stage!==lastZoomStage){stage.scrollTop=0;stage.scrollLeft=stage.scrollWidth-stage.clientWidth;lastZoomPosition=key;lastZoomStage=stage}}
 const mushafAppearance=readerAppearance;readerAppearance=function(){mushafAppearance();document.body.dataset.minimalMushaf=String(mode==='plain'&&prefs.plainMinimal!==false);document.body.dataset.hideMushafFooter=String(mode==='plain'&&prefs.plainFooter!==true);document.body.dataset.pdfEnlarged=String(isScan()&&zoomForMode()>100);document.documentElement.style.setProperty('--pdf-scale',zoomForMode()/100);requestAnimationFrame(alignMagnifiedPage)};
-new MutationObserver(()=>requestAnimationFrame(alignMagnifiedPage)).observe($('page'),{childList:true,subtree:true});
+new MutationObserver(()=>requestAnimationFrame(alignMagnifiedPage)).observe($('page'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','id']});
 const mushafChangeMode=changeMode;changeMode=function(next){mushafChangeMode(next);if(next==='plain'&&prefs.plainFullscreen!==false)fullscreen(true);else if(immersive&&prefs.plainFullscreen!==false)fullscreen(false)};
 // Scrolling a magnified PDF must pan the page rather than accidentally advance it.
 reader.addEventListener('touchend',e=>{if(isScan()&&zoomForMode()>100&&touch){if(e.changedTouches.length&&Math.abs(e.changedTouches[0].clientX-touch.x)>15)suppressClickUntil=Date.now()+500;touch=null;e.stopImmediatePropagation()}},{capture:true,passive:true});

@@ -81,7 +81,7 @@ public class ReaderChecks extends Instrumentation {
             js("closePanels();fullscreen(false);screen('settings')");
             await("document.getElementById('pdf-magnification').value==='100'",10);
             js("document.getElementById('pdf-magnification').value='150';document.getElementById('pdf-magnification').dispatchEvent(new Event('change'));closePanels()");
-            await("document.body.dataset.pdfEnlarged==='true' && document.getElementById('pdf-stage').scrollWidth>document.getElementById('pdf-stage').clientWidth*1.4",10);
+            await("document.body.dataset.pdfEnlarged==='true' && document.getElementById('pdf-stage').scrollWidth>document.getElementById('pdf-stage').clientWidth*1.4 && document.getElementById('pdf-stage').scrollLeft>0",10);
             js("prefs.pdfZooms.plain=100;applyPrefs()");
             tap("bookmark"); // Leave each display scenario with an unbookmarked page.
             result.putString("stream","PASS: "+profile+" — safe areas, real toolbar taps, three modes, both PDF renderers, persistent bookmark, v1.7 fill layout, four layouts, original text sizes, notes, statistics, backup validation, safe focus controls, comfort presets, margin-free full-screen Mushaf, magnification, no PDF copies\n");
