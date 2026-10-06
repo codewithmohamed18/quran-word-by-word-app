@@ -34,7 +34,8 @@ public class ReaderChecks extends Instrumentation {
             screenshot("modes");
             // Pick the large text mode first. Tests its responsive layout before requesting the second bundled PDF.
             tap("tajweed-mode");await("document.body.classList.contains('fill-reading')",15);
-            tap("modes-button");tap("plain-mode");
+            tap("modes-button");await("!document.getElementById('sheet').classList.contains('hidden')",10);tap("plain-mode");
+            await("mode==='plain'",10);
             await("document.getElementById('pdf-image') && document.getElementById('pdf-image').complete && document.getElementById('pdf-image').naturalWidth>0 && document.getElementById('pdf-loading').classList.contains('hidden')",60);
             tap("bookmark");await("document.getElementById('bookmark').getAttribute('aria-label')==='Remove page bookmark'",10);
             runOnMainSync(()->activity.finish());waitForIdleSync();
@@ -53,9 +54,10 @@ public class ReaderChecks extends Instrumentation {
     private WebView findWeb(View view){if(view instanceof WebView)return(WebView)view;if(view instanceof ViewGroup){ViewGroup g=(ViewGroup)view;for(int i=0;i<g.getChildCount();i++){WebView found=findWeb(g.getChildAt(i));if(found!=null)return found;}}return null;}
     private String js(String source)throws Exception{CountDownLatch done=new CountDownLatch(1);String[] answer=new String[1];runOnMainSync(()->web.evaluateJavascript(source,value->{answer[0]=value;done.countDown();}));if(!done.await(10,TimeUnit.SECONDS))throw new AssertionError("JavaScript timed out");return answer[0];}
     private void await(String source,int seconds)throws Exception{long end=SystemClock.uptimeMillis()+seconds*1000;while(SystemClock.uptimeMillis()<end){if("true".equals(js("Boolean("+source+")")))return;Thread.sleep(150);}throw new AssertionError("Timed out: "+source+"; "+js("document.body.innerText.slice(0,800)"));}
+    private void syncFrame()throws Exception{CountDownLatch done=new CountDownLatch(1);runOnMainSync(()->web.postVisualStateCallback(SystemClock.uptimeMillis(),new WebView.VisualStateCallback(){@Override public void onComplete(long request){web.invalidate();done.countDown();}}));if(!done.await(15,TimeUnit.SECONDS))throw new AssertionError("WebView frame did not commit");Thread.sleep(500);}
     private void checkButton(String id)throws Exception{if(!"true".equals(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();return r.width>=44 && r.height>=44 && r.left>=0 && r.right<=innerWidth+1 && r.top>=0 && r.bottom<=innerHeight+1})()")))throw new AssertionError("Inaccessible toolbar control: "+id);}
     private void tap(String id)throws Exception{
-        js("document.getElementById('"+id+"').scrollIntoView({block:'nearest'})");waitForIdleSync();
+        js("document.getElementById('"+id+"').scrollIntoView({block:'nearest'})");syncFrame();waitForIdleSync();
         JSONArray p=new JSONArray(js("(()=>{let r=document.getElementById('"+id+"').getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2,innerWidth]})()"));
         int[] location=new int[2];int[] width=new int[1];runOnMainSync(()->{web.getLocationOnScreen(location);width[0]=web.getWidth();});
         float scale=(float)(width[0]/p.getDouble(2));float x=location[0]+(float)p.getDouble(0)*scale,y=location[1]+(float)p.getDouble(1)*scale;
@@ -64,5 +66,5 @@ public class ReaderChecks extends Instrumentation {
     }
     private boolean hasPdf(File directory){File[] files=directory.listFiles();if(files!=null)for(File f:files){if(f.isDirectory()?hasPdf(f):f.getName().endsWith(".pdf"))return true;}return false;}
     private long size(File directory){long total=0;File[] files=directory.listFiles();if(files!=null)for(File f:files)total+=f.isDirectory()?size(f):f.length();return total;}
-    private void screenshot(String name)throws Exception{Thread.sleep(500);File out=new File(getTargetContext().getExternalFilesDir(null),"checks");out.mkdirs();Bitmap b=getUiAutomation().takeScreenshot();try(FileOutputStream stream=new FileOutputStream(new File(out,profile+"-"+name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,stream);}b.recycle();}
+    private void screenshot(String name)throws Exception{syncFrame();File out=new File(getTargetContext().getExternalFilesDir(null),"checks");out.mkdirs();Bitmap b=getUiAutomation().takeScreenshot();try(FileOutputStream stream=new FileOutputStream(new File(out,profile+"-"+name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,stream);}b.recycle();}
 }
