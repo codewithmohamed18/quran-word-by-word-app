@@ -4,7 +4,7 @@
 
 Read, study and bookmark the Qur’an in seven reading modes. Choose your preferred page layout, set a daily reading goal and save pages for offline reading.
 
-**[Open the website](https://codewithmohamed18.github.io/quran-word-by-word-app/)** · **[Download Android v1.9](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/download/v1.9/Tajweed-and-Meaning-v1.9.apk)** · **[Release and checksums](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.9)**
+**[Open the website](https://codewithmohamed18.github.io/quran-word-by-word-app/)** · **[Current Android v1.9 download](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/download/v1.9/Tajweed-and-Meaning-v1.9.apk)** · **[Release and checksums](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.9)**
 
 ## Seven reading modes
 
@@ -53,7 +53,7 @@ Your reading positions, settings, bookmarks and statistics are stored on your de
 
 ## Install
 
-**Android:** download `Tajweed-and-Meaning-v1.9.apk` from the release above. Open the downloaded file and allow installation from the browser or file manager if Android asks. Requires Android 8 or newer. This refreshed v1.9 uses a higher Android build number, so it can update the earlier v1.9 installation. It uses the same application identity and signing key to retain that installation’s data.
+**Android:** the current public v1.9 download is the earlier five-mode edition. The seven-mode APK update is paused at the owner’s request; use the website for the latest seven modes and typed page goal. To install the current edition, download `Tajweed-and-Meaning-v1.9.apk` from the release above. Open the downloaded file and allow installation from the browser or file manager if Android asks. Requires Android 8 or newer. The refreshed seven-mode APK will be published separately when its Android checks are complete.
 
 **iPhone / iPad:** open the website in Safari, tap **Share → Add to Home Screen**. Open the new Home Screen icon to read like an app. APK files are for Android; IPA and simulator packages are not offered.
 
@@ -85,7 +85,7 @@ The goal can be changed in reading statistics and **Settings → General**. **Re
 
 ## Offline reading
 
-The Android APK includes Modes **1, 2, 3, 5, 6 and 7**, including all 3,617 scan pages across the five scanned editions. It is a large download because the original page images are included. Mode 4 remains downloadable separately and uses saved-page caching.
+The website supports preparing pages for offline reading. The current Android download is the earlier five-mode edition. The planned seven-mode APK refresh will bundle Modes **1, 2, 3, 5, 6 and 7** (3,617 scan pages); Mode 4 will remain downloadable separately. This APK refresh is not yet published.
 
 On the website, connect to the internet before preparing offline reading. Use the offline/download controls and wait for completion before disconnecting. Browser storage space varies; browsers may remove stored pages when device storage is low. Keep the original web app installed and avoid clearing its site data if you want to retain offline pages and bookmarks.
 

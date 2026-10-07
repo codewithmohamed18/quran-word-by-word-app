@@ -24,6 +24,7 @@ jobs:
           done
   screenshots:
     needs: pause_android
+    timeout-minutes: 8
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,10 +35,11 @@ jobs:
           node-version: '22'
       - name: Capture all modes from the published website
         env:
+          READER_USE_SYSTEM_CHROME: '1'
           READER_SCREENSHOT_BASE: https://codewithmohamed18.github.io/quran-word-by-word-app/
         run: |
-          npm install --no-save playwright@1.58.2
-          npx playwright install --with-deps chromium
+          npm install --no-save --no-audit --no-fund playwright@1.58.2
+          google-chrome --version
           node scripts/capture-readme.cjs
       - name: Publish the illustrated guide
         run: |
