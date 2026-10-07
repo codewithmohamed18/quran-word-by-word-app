@@ -30,7 +30,7 @@ jobs:
         run: |
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
           pip install PyMuPDF==1.26.6 Pillow==11.3.0
-      - name: Build verified five-mode APK
+      - name: Build verified seven-mode APK
         run: |
           python scripts/build-v19.py
           bash scripts/build-v19-android.sh
@@ -83,12 +83,18 @@ jobs:
           cd dist
           sha256sum Tajweed-and-Meaning-v1.9.apk > SHA256SUMS-v1.9.txt
           cat > v19-notes.md <<'EOF'
-          Android v1.9 packages the approved five-mode web reader. Includes searchable Surahs, bookmarks, organized settings and six 16-line page layouts.
+          Android v1.9 packages the approved seven-mode web reader. Includes searchable Surahs, bookmarks, organized settings and seven reading modes, custom daily page goals and page layouts.
 
-          Modes 1, 2, 3 and 5 are bundled for offline reading. Mode 4 uses its original online GitHub-hosted pages and supports saving pages for offline reading. The APK is large because it includes the original scans.
+          Modes 1, 2, 3, 5, 6 and 7 are bundled for offline reading. Mode 4 uses its original online GitHub-hosted pages and supports saving pages for offline reading. The APK is large because it includes the original scans.
 
           Install Tajweed-and-Meaning-v1.9.apk on Android 8 or newer. It installs as a separate app; earlier Android apps and their bookmarks remain intact. Website bookmarks are separate from APK bookmarks.
 
           Neither website was changed for this Android release. iOS IPA and simulator downloads have been removed; use either website on iPhone/iPad.
           EOF
-          gh release create v1.9 Tajweed-and-Meaning-v1.9.apk SHA256SUMS-v1.9.txt v19-source.json --target "$GITHUB_SHA" --title 'Tajweed & Meaning v1.9 — Five-mode Android reader' --notes-file v19-notes.md --latest
+          if gh release view v1.9 >/dev/null 2>&1; then
+            gh release upload v1.9 Tajweed-and-Meaning-v1.9.apk SHA256SUMS-v1.9.txt v19-source.json --clobber
+            gh release edit v1.9 --notes-file v19-notes.md --latest
+          else
+            gh release create v1.9 Tajweed-and-Meaning-v1.9.apk SHA256SUMS-v1.9.txt v19-source.json --target "$GITHUB_SHA" --title 'Tajweed & Meaning v1.9 — Five-mode Android reader' --notes-file v19-notes.md --latest
+
+          fi
