@@ -2,7 +2,7 @@
 from pathlib import Path
 import hashlib,json,shutil,subprocess,urllib.request
 ROOT=Path(__file__).resolve().parents[1]
-WEB_SHA='175a4558da4de22aba248359dc7f46f741530462'
+WEB_SHA='931a95e30c60017b4c132c00ab46b03e0737257a'
 web=ROOT/'dist/web-source'
 if not web.exists():subprocess.run(['git','clone','--depth','1','--branch','github-pages-web','https://github.com/codewithmohamed18/quran-word-by-word-app.git',str(web)],check=True)
 assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=web,text=True).strip()==WEB_SHA,'Web snapshot changed; review before updating v1.9'
