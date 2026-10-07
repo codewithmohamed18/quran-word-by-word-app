@@ -8,3 +8,8 @@ body[data-ayah-numbers="false"] .ayah-number{display:none}body[data-ayah-actions
 .download-mode-row{padding:14px;border:1px solid #aab5ac;border-radius:12px;margin:10px 0}.download-mode-row strong{display:block;margin-bottom:8px}.download-mode-row .tools-actions{display:flex;flex-wrap:wrap;gap:8px}.download-mode-row button{min-height:44px}.offline-health{background:#e8f1e9;color:#163f30;padding:12px;border-radius:10px}.dark .download-mode-row{background:#19382f}.dark .offline-health{background:#173c30;color:#e5f4e8}
 @media(prefers-reduced-motion:reduce){.pdf-image{transition:none!important}}
 body.fill-reading .ayah-number{font-size:max(20px,.55em);font-family:Uthmani,serif;vertical-align:middle}
+
+/* Controls belong outside the Qur’an page, including all seven focus views. */
+body.immersive .focus-tools,body.immersive .focus-bottom,body.immersive #word-study-tools{display:none!important}
+body[data-word-study="true"]:not(.immersive) #word-study-tools{display:flex;bottom:calc(var(--bottom-bar) + env(safe-area-inset-bottom));height:48px;opacity:1;border-radius:0;left:0;right:0;transform:none;justify-content:center;border-top:1px solid var(--line)}
+body[data-word-study="true"]:not(.immersive) #reader{bottom:calc(var(--bottom-bar) + 48px + env(safe-area-inset-bottom))}

@@ -4,6 +4,7 @@ import hashlib,json,runpy,shutil
 ROOT=Path(__file__).resolve().parents[1]
 runpy.run_path(str(ROOT/'scripts/build-web.py'),run_name='__main__')
 runpy.run_path(str(ROOT/'scripts/build-sixteen.py'),run_name='__main__')
+runpy.run_path(str(ROOT/'scripts/build-new-mushafs.py'),run_name='__main__')
 output=ROOT/'dist/web'
 for source in (ROOT/'web-pages/reader').rglob('*'):
     if source.is_file():

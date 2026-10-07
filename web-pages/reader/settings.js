@@ -39,15 +39,15 @@ function resetModeLayout(){
 }
 function orderSettings(){
  const content=$('sheet').querySelector('.sheet-content');
- content.insertAdjacentHTML('beforeend',selectSetting('word-quality','Mode 1 page clarity',clarityChoices,prefs.wordQuality||'clear','Clear and Maximum render more pixels within your device’s memory limit. Maximum may take longer. The original scan sets the available detail.')+selectSetting('word-edges','Mode 1 text edge clarity',[['none','Original edges'],['gentle','Gentle (default)'],['strong','Stronger']],prefs.wordEdges||'gentle','Optional edge emphasis for reading. The bundled PDF is unchanged; no letters or meanings are reconstructed.')+'<button class="action" id="reading-profiles">Saved reading setups</button><button id="reset-mode-layout">Reset this mode’s layout</button>');
+ content.insertAdjacentHTML('beforeend',selectSetting('word-quality','Mode 2 page clarity',clarityChoices,prefs.wordQuality||'clear','Clear and Maximum render more pixels within your device’s memory limit. Maximum may take longer. The original scan sets the available detail.')+selectSetting('word-edges','Mode 2 text edge clarity',[['none','Original edges'],['gentle','Gentle (default)'],['strong','Stronger']],prefs.wordEdges||'gentle','Optional edge emphasis for reading. The bundled PDF is unchanged; no letters or meanings are reconstructed.')+'<button class="action" id="reading-profiles">Saved reading setups</button><button id="reset-mode-layout">Reset this mode’s layout</button>');
  $('word-quality').onchange=()=>{prefs.wordQuality=$('word-quality').value;applyPrefs()};$('word-edges').onchange=()=>{prefs.wordEdges=$('word-edges').value;applyPrefs()};$('reading-profiles').onclick=()=>screen('profiles');$('reset-mode-layout').onclick=resetModeLayout;
  const groups=[
   ['page','Page layout & clarity',['pdf-fit','pdf-magnification','word-quality','word-edges'],true],
   ['comfort','Colours & reading comfort',['word-theme','dark','page-brightness','reading-contrast','reading-warmth','reading-guide-toggle','reading-guide-position'],false],
-  ['text','Arabic & English · Mode 2',['meaning','size','english-size','reading-line','meaning-line'],mode==='tajweed'],
+  ['text','Arabic & English · Mode 3',['meaning','size','english-size','reading-line','meaning-line'],mode==='tajweed'],
   ['navigation','Page turns & full-screen',['swipe-pages','swipe-action','motion','tap-controls','start-focus','focus-tools','show-progress'],false],
-  ['word','Word-by-word study · Mode 1',['word-study','study-step','word-fullscreen'],mode==='word'],
-  ['mushaf','Mushaf view · Mode 3',['mushaf-fullscreen','mushaf-minimal','mushaf-footer'],mode==='plain'],
+  ['word','Word-by-word study · Mode 2',['word-study','study-step','word-fullscreen'],mode==='word'],
+  ['mushaf','Mushaf view · Mode 5',['mushaf-fullscreen','mushaf-minimal','mushaf-footer'],mode==='plain'],
   ['access','Accessibility & screen',['large-controls','awake','volume'],false],
   ['data','Goals, saved setups & backup',['daily-goal','reading-profiles','reading-stats','reading-backup','reset-mode-layout','reset-reading'],false]
  ];
@@ -77,6 +77,6 @@ const organizedScreen=screen;screen=function(id){if(id==='profiles'){showProfile
 const profilesDrawer=drawer;drawer=function(){profilesDrawer();const b=document.createElement('button');b.className='drawer-row';b.innerHTML='<span class="icon">▤</span>Saved reading setups';b.onclick=()=>screen('profiles');$('drawer').querySelector('.drawer-bottom').before(b)};$('menu').onclick=drawer;$('focus-menu').onclick=drawer;
 const organizedBackup=validateBackup;validateBackup=function(b){
  organizedBackup(b);const p=b.data['tm-settings'];if(p){if(p.wordQuality!=null&&!clarityChoices.some(([id])=>id===p.wordQuality))throw Error('Invalid page clarity');if(p.wordEdges!=null&&!['none','gentle','strong'].includes(p.wordEdges))throw Error('Invalid edge clarity')}
- const saved=b.data['tm-reading-profiles'];if(saved!=null){if(!Array.isArray(saved)||saved.length>8)throw Error('Invalid reading setups');for(const item of saved){if(!item||typeof item.name!=='string'||!item.name.trim()||item.name.length>40||!['word','plain','tajweed','study','sixteen'].includes(item.mode)||typeof item.focus!=='boolean'||!item.prefs||typeof item.prefs!=='object'||Array.isArray(item.prefs))throw Error('Invalid saved setup');validateBackup({format:'tajweed-meaning-backup',version:1,data:{'tm-settings':item.prefs}})}}
+ const saved=b.data['tm-reading-profiles'];if(saved!=null){if(!Array.isArray(saved)||saved.length>8)throw Error('Invalid reading setups');for(const item of saved){if(!item||typeof item.name!=='string'||!item.name.trim()||item.name.length>40||!['word','plain','tajweed','study','sixteen','fifteen','madina'].includes(item.mode)||typeof item.focus!=='boolean'||!item.prefs||typeof item.prefs!=='object'||Array.isArray(item.prefs))throw Error('Invalid saved setup');validateBackup({format:'tajweed-meaning-backup',version:1,data:{'tm-settings':item.prefs}})}}
 };
 applyPrefs();readerAppearance();
