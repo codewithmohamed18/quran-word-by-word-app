@@ -33,13 +33,13 @@ function wireJumps(){$('sheet').querySelectorAll('[data-page]').forEach(b=>b.onc
 window.handleBack=()=>{if(!$('sheet').classList.contains('hidden')||!$('drawer').classList.contains('hidden')){closePanels();return true}if(immersive){fullscreen(false);return true}return false};
 $('menu').onclick=drawer;$('shade').onclick=closePanels;$('bookmark').onclick=bookmark;$('full').onclick=()=>fullscreen(!immersive);$('page-button').onclick=()=>screen('jump');$('next').onclick=()=>go(page+1);$('previous').onclick=()=>go(page-1);
 let suppressClickUntil=0;let touch=null;const reader=$('reader');reader.addEventListener('touchstart',e=>{touch=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,time:Date.now()}:null},{passive:true});reader.addEventListener('touchend',e=>{if(!touch||e.changedTouches.length!==1)return;const dx=e.changedTouches[0].clientX-touch.x,dy=e.changedTouches[0].clientY-touch.y;if((!window.visualViewport||window.visualViewport.scale<1.05)&&Math.abs(dx)>90&&Math.abs(dx)>Math.abs(dy)*1.8&&Date.now()-touch.time<800){suppressClickUntil=Date.now()+500;go(page+(dx>0?1:-1));touch=null}},{passive:true});reader.onclick=e=>{if(Date.now()<suppressClickUntil)return;if(window.getSelection().toString())return;if(touch&&Date.now()-touch.time<800&&(Math.abs(e.clientX-touch.x)>15||Math.abs(e.clientY-touch.y)>15))return;fullscreen(!immersive)};
-let mode=load('tm-mode','word');if(!['word','tajweed','plain','study'].includes(mode))mode='word';
-const maxPages=()=>mode==='study'?STUDY_NAV.total:mode==='word'?960:mode==='plain'?850:604;
+let mode=load('tm-mode','word');if(!['word','tajweed','plain','study','sixteen'].includes(mode))mode='word';
+const maxPages=()=>mode==='sixteen'?SIXTEEN_NAV.total:mode==='study'?STUDY_NAV.total:mode==='word'?960:mode==='plain'?850:604;
 const minPage=()=>mode==='plain'?4:1;
-const isScan=()=>mode==='word'||mode==='plain'||mode==='study';
+const isScan=()=>mode==='word'||mode==='plain'||mode==='study'||mode==='sixteen';
 const imageKey=n=>mode+':'+n;
-const bookmarkKey=()=>mode==='study'?'tm-study-bookmarks':mode==='word'?'tm-word-bookmarks':mode==='plain'?'tm-plain-bookmarks':'tm-bookmarks';
-function readModeState(){page=Math.max(minPage(),Math.min(maxPages(),Number(load(pageKey(),mode==='study'?STUDY_NAV.first:1))||1));marks=load(bookmarkKey(),[])}
+const bookmarkKey=()=>mode==='sixteen'?'tm-sixteen-bookmarks':mode==='study'?'tm-study-bookmarks':mode==='word'?'tm-word-bookmarks':mode==='plain'?'tm-plain-bookmarks':'tm-bookmarks';
+function readModeState(){page=Math.max(minPage(),Math.min(maxPages(),Number(load(pageKey(),mode==='sixteen'?SIXTEEN_NAV.first:mode==='study'?STUDY_NAV.first:1))||1));marks=load(bookmarkKey(),[])}
 readModeState();
 function render(){document.body.classList.toggle('pdf-reading',mode==='word');if(mode==='tajweed'){renderTajweed();return}
  const surah=[...WORD_NAV.surahs].reverse().find(s=>s.page<=page);$('top-label').textContent='Word by word · Juz '+(Math.floor((page-1)/32)+1);$('page-button').textContent=`Page ${page} / 960`;$('next').disabled=page===960;$('previous').disabled=page===1;updateBookmark();save('tm-word-page',page);
@@ -47,7 +47,7 @@ function render(){document.body.classList.toggle('pdf-reading',mode==='word');if
  if(window.Android&&Android.pdfPage)Android.pdfPage(page);else $('pdf-loading').textContent='PDF pages display in the installed Android app.';
 }
 window.receivePdf=(n,base64,error)=>{if(mode!=='word'||n!==page)return;const image=$('pdf-image'),loading=$('pdf-loading');if(!image||!loading)return;if(error){loading.textContent=error;return}image.onload=()=>{loading.classList.add('hidden');image.classList.remove('hidden')};image.onerror=()=>{loading.textContent='Unable to display this page. Try reopening it.'};image.src='data:image/jpeg;base64,'+base64};
-function changeMode(next){if(next===mode){closePanels();return}mode=next;save('tm-mode',mode);readModeState();closePanels();render();window.scrollTo(0,0);toast(mode==='study'?'Study the Noble Qur’an · Word for word':mode==='word'?'Word-by-word pages':mode==='plain'?'Tajweed · Arabic only':'Tajweed + Hilali–Khan meanings')}
+function changeMode(next){if(next===mode){closePanels();return}mode=next;save('tm-mode',mode);readModeState();closePanels();render();window.scrollTo(0,0);toast(mode==='sixteen'?'16-line colour-coded Tajweed':mode==='study'?'Study the Noble Qur’an · Word for word':mode==='word'?'Word-by-word pages':mode==='plain'?'Tajweed · Arabic only':'Tajweed + Hilali–Khan meanings')}
 const originalScreen=screen;
 screen=function(id){if(id==='modes'){openSheet('Reading mode',`<button id="word-mode" class="mode-card ${mode==='word'?'active':''}"><strong>1. Word by word</strong><small>Original Arabic-English PDF pages · 960 pages<br>Meanings beneath each Arabic word</small></button><button id="tajweed-mode" class="mode-card ${mode==='tajweed'?'active':''}"><strong>Colourful Tajweed</strong><small>Colour-coded recitation text · 604-page navigation<br>English verse meanings</small></button><p class="helper">Saved pages work offline and remember their own page and bookmarks. Tajweed colours are available in Tajweed mode; the PDF keeps its original printed colours.</p>`);$('word-mode').onclick=()=>changeMode('word');$('tajweed-mode').onclick=()=>changeMode('tajweed');return}
  if(mode!=='word'){originalScreen(id);return}
@@ -61,44 +61,47 @@ screen=function(id){if(id==='modes'){openSheet('Reading mode',`<button id="word-
 };
 
 const pdfImages=new Map();let pdfVisiblePage=0,pdfDirection=1;
-function pageKey(){return mode==='study'?'tm-study-page':mode==='word'?'tm-word-page':mode==='plain'?'tm-plain-page':'tm-page'}
+function pageKey(){return mode==='sixteen'?'tm-sixteen-page':mode==='study'?'tm-study-page':mode==='word'?'tm-word-page':mode==='plain'?'tm-plain-page':'tm-page'}
 function recordHistory(){const key='tm-recent';let recent=load(key,[]).filter(v=>!(v.mode===mode&&v.page===page));recent.unshift({mode,page});save(key,recent.slice(0,15))}
 function fitReadingPage(){if(isScan())return;const reader=$('reader');reader.classList.add('reading-overflow');document.documentElement.style.setProperty('--arabic',Math.max(30,prefs.size||36)+'px');document.documentElement.style.setProperty('--english',(prefs.englishSize||20)+'px')}
 
 let pdfAnimation=0;
+function removeScanImage(image){if(image?.parentElement?.classList.contains('sixteen-frame'))image.parentElement.remove();else image?.remove()}
 function displayPdf(n,data){if(!isScan()||n!==page)return;const requestedMode=mode;const stage=$('pdf-stage');if(!stage)return;
  if($('pdf-image')?.dataset.page===String(n))return;
  stage.querySelectorAll('.pdf-pending').forEach(e=>e.remove());
- const incoming=new Image();incoming.className='pdf-image pdf-pending';incoming.alt=(mode==='study'?'Study the Noble Qur’an, combined page ':mode==='plain'?'13-line colour-coded Tajweed Qur’an, page ':'Original Arabic-English word-by-word Qur’an, page ')+n;incoming.dataset.page=n;
+ const incoming=new Image();incoming.className='pdf-image pdf-pending';incoming.alt=(mode==='sixteen'?'Original 16-line colour-coded Tajweed Qur’an, PDF page ':mode==='study'?'Study the Noble Qur’an, combined page ':mode==='plain'?'13-line colour-coded Tajweed Qur’an, page ':'Original Arabic-English word-by-word Qur’an, page ')+n;incoming.dataset.page=n;
  incoming.onload=async()=>{try{if(incoming.decode)await incoming.decode()}catch(e){}
   if(mode!==requestedMode||n!==page||!incoming.isConnected){incoming.remove();return}
-  clearTimeout(pdfAnimation);stage.querySelectorAll('#pdf-previous').forEach(e=>e.remove());
+  clearTimeout(pdfAnimation);stage.querySelectorAll('#pdf-previous').forEach(removeScanImage);
+  if(requestedMode==='sixteen'&&typeof prepareSixteenFrame==='function')prepareSixteenFrame(incoming);
   const old=$('pdf-image');$('pdf-loading').classList.add('hidden');incoming.id='pdf-image';if(old){old.id='pdf-previous';old.style.transition='none';old.style.transform='translateX(0)'}
   if(old&&prefs.motion!==false&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const direction=pdfDirection;incoming.style.opacity='0';incoming.style.transform=`translateX(${-direction*12}px)`;incoming.classList.remove('pdf-pending');
-   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!incoming.isConnected)return;incoming.style.transition='opacity 220ms ease-out, transform 220ms ease-out';incoming.style.opacity='1';incoming.style.transform='translateX(0)';old.style.transition='opacity 220ms ease-out';old.style.opacity='0';pdfAnimation=setTimeout(()=>old.remove(),250)}));
-  }else{incoming.classList.remove('pdf-pending');if(old)old.remove()}
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!incoming.isConnected)return;incoming.style.transition='opacity 220ms ease-out, transform 220ms ease-out';incoming.style.opacity='1';incoming.style.transform='translateX(0)';old.style.transition='opacity 220ms ease-out';old.style.opacity='0';pdfAnimation=setTimeout(()=>removeScanImage(old),250)}));
+  }else{incoming.classList.remove('pdf-pending');if(old)removeScanImage(old)}
   pdfVisiblePage=n;
- };incoming.onerror=()=>{incoming.remove();$('pdf-loading').textContent='Unable to display page. Please try again.';$('pdf-loading').classList.remove('hidden')};stage.appendChild(incoming);incoming.src=data.startsWith('pages/')||data.startsWith('data:')||data.startsWith('blob:')?data:'data:image/jpeg;base64,'+data;
+ };incoming.onerror=()=>{incoming.remove();const loading=$('pdf-loading');if(mode!==requestedMode||n!==page||!loading)return;loading.innerHTML='This page could not open. Connect if it is not saved offline. <button id="retry-scan">Retry page</button>';loading.classList.remove('hidden');$('retry-scan').onclick=()=>render()};stage.appendChild(incoming);incoming.src=data.startsWith('pages/')||data.startsWith('data:')||data.startsWith('blob:')?data:'data:image/jpeg;base64,'+data;
 }
 function render(){document.body.classList.toggle('word-reading',mode==='word');document.body.classList.toggle('pdf-reading',isScan());document.body.classList.toggle('plain-reading',false);document.body.classList.toggle('fill-reading',mode==='tajweed');document.body.classList.toggle('pdf-proportions',prefs.pdfFit==='proportions');
  recordHistory();if(mode==='tajweed'){renderTajweed();$('reader').scrollTop=0;$('top-label').textContent=QURAN.surahs[QURAN.pages[page][0].s-1].name+' · Hilali–Khan meaning';save(pageKey(),page);requestAnimationFrame(fitReadingPage);document.fonts.ready.then(fitReadingPage);return}
  const meta=mode==='plain'?PLAIN_NAV.headers[page]:mode==='study'?STUDY_NAV.headers[page]:null;
- $('top-label').textContent=mode==='study'?(meta.intro?'Study Qur’an · Volume '+meta.volume+' introduction':'Study Qur’an · Vol '+meta.volume+' · Juz '+meta.j):mode==='plain'?'13-line Tajweed · Juz '+meta.j:'Word by word · Juz '+(Math.floor((page-1)/32)+1);$('page-button').textContent=`Page ${page} / ${maxPages()}`;$('next').disabled=page===maxPages();$('previous').disabled=page===minPage();updateBookmark();save(pageKey(),page);
+ $('top-label').textContent=mode==='sixteen'?'16-line Tajweed · '+(page>=3&&page<=550?'Printed page '+(page-1):'Source page '+page):mode==='study'?(meta.intro?'Study Qur’an · Volume '+meta.volume+' introduction':'Study Qur’an · Vol '+meta.volume+' · Juz '+meta.j):mode==='plain'?'13-line Tajweed · Juz '+meta.j:'Word by word · Juz '+(Math.floor((page-1)/32)+1);$('page-button').textContent=`Page ${page} / ${maxPages()}`;$('next').disabled=page===maxPages();$('previous').disabled=page===minPage();updateBookmark();save(pageKey(),page);
  if(!$('pdf-stage')||$('pdf-stage').dataset.mode!==mode){pdfVisiblePage=0;$('page').innerHTML='<div id="pdf-stage" data-mode="'+mode+'"><div class="pdf-loading" id="pdf-loading">Opening Qur’an page…</div></div>'}
  pdfDirection=page>=pdfVisiblePage?1:-1;
  if(pdfImages.has(imageKey(page))){displayPdf(page,pdfImages.get(imageKey(page)));return}
- if(window.Android){if(mode==='study'&&Android.studyPage)Android.studyPage(page);else if(mode==='plain'&&Android.plainPage)Android.plainPage(page);else if(mode==='word'&&Android.pdfPage)Android.pdfPage(page)}else if(!$('pdf-image'))$('pdf-loading').textContent='PDF pages display in the installed Android app.';
+ if(window.Android){if(mode==='sixteen'&&Android.sixteenPage)Android.sixteenPage(page);else if(mode==='study'&&Android.studyPage)Android.studyPage(page);else if(mode==='plain'&&Android.plainPage)Android.plainPage(page);else if(mode==='word'&&Android.pdfPage)Android.pdfPage(page)}else if(!$('pdf-image'))$('pdf-loading').textContent='PDF pages display in the installed Android app.';
 }
 function receiveScan(target,n,data,error){const key=target+':'+n;if(data){if(pdfImages.get(key)!==data)releaseScanUrl(pdfImages.get(key));pdfImages.delete(key);pdfImages.set(key,data);if(pdfImages.size>3){const oldest=pdfImages.keys().next().value;releaseScanUrl(pdfImages.get(oldest));pdfImages.delete(oldest)}}if(mode!==target||n!==page)return;if(error){$('pdf-loading').textContent=error;$('pdf-loading').classList.remove('hidden');return}displayPdf(n,data)}
 window.receivePdf=(n,data,error)=>receiveScan('word',n,data,error);
 window.receivePlainPdf=(n,data,error)=>receiveScan('plain',n,data,error);
+window.receiveSixteenPdf=(n,data,error)=>receiveScan('sixteen',n,data,error);
 window.receiveStudyPdf=(n,data,error)=>receiveScan('study',n,data,error);
 window.turnPage=delta=>{if(!$('sheet').classList.contains('hidden')||!$('drawer').classList.contains('hidden'))return;go(page+delta)};
 const baseApplyPrefs=applyPrefs;
 applyPrefs=function(){baseApplyPrefs();document.body.dataset.wordTheme=prefs.wordTheme||'cream';document.body.classList.toggle('pdf-proportions',prefs.pdfFit==='proportions');if(window.Android&&Android.volumeKeys)Android.volumeKeys(!!prefs.volume);if(mode!=='word')requestAnimationFrame(fitReadingPage)};
 const oldFullscreen=fullscreen;fullscreen=function(on){oldFullscreen(on);requestAnimationFrame(fitReadingPage)};
 window.addEventListener('resize',()=>requestAnimationFrame(fitReadingPage));
-const modeLabel=m=>m==='study'?'Study the Noble Qur’an':m==='word'?'Word by word':m==='plain'?'Tajweed only':'Tajweed + Hilali–Khan';
+const modeLabel=m=>m==='sixteen'?'16-line Tajweed':m==='study'?'Study the Noble Qur’an':m==='word'?'Word by word':m==='plain'?'Tajweed only':'Tajweed + Hilali–Khan';
 const oldScreen=screen;
 screen=function(id){
  if(id==='modes'){openSheet('Reading mode',`<button id="word-mode" class="mode-card ${mode==='word'?'active':''}"><strong>1. Word by word</strong><small>Original 960-page PDF from your link<br>Exact printed word meanings and page colours</small></button><button id="tajweed-mode" class="mode-card ${mode==='tajweed'?'active':''}"><strong>2. Colour Tajweed with meaning</strong><small>Colour-coded Hafs Arabic + Hilali–Khan verse translation<br>Complete Muhammad Muhsin Khan &amp; Muhammad Taqi-ud-Din al-Hilali translation</small></button><button id="plain-mode" class="mode-card ${mode==='plain'?'active':''}"><strong>3. Plain Qur’an with colour-coded Tajweed</strong><small>Original printed Indo-Pak Mushaf · 13 large lines<br>Same script and colours as your reference · available offline after saving</small></button>`);$('word-mode').onclick=()=>changeMode('word');$('tajweed-mode').onclick=()=>changeMode('tajweed');$('plain-mode').onclick=()=>changeMode('plain');return}
@@ -129,5 +132,5 @@ if(load('tm-plain-edition',0)<14){save('tm-plain-reflow-page',load('tm-plain-pag
 if(load('tm-readable-fonts',0)<16){prefs.size=Math.max(36,prefs.size||36);prefs.englishSize=20;save('tm-readable-fonts',16)}
 // Migrate older layouts once, including a saved original-proportions setting.
 if(load('tm-layout-version',0)<13){prefs.pdfFit='fill';prefs.motion=true;save('tm-layout-version',13)}
-$('top-label').onclick=()=>screen('modes');$('top-label').setAttribute('role','button');$('top-label').setAttribute('tabindex','0');$('top-label').setAttribute('aria-label','Choose one of four reading modes');$('top-label').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();screen('modes')}};
+$('top-label').onclick=()=>screen('modes');$('top-label').setAttribute('role','button');$('top-label').setAttribute('tabindex','0');$('top-label').setAttribute('aria-label','Choose one of five reading modes');$('top-label').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();screen('modes')}};
 applyPrefs();render();

@@ -88,4 +88,8 @@ body.word-reading .pdf-image{filter:var(--word-filter,none)!important}
 .profile-form{display:grid;gap:12px;margin:16px 0}.profile-form input{font-size:16px}.profile-row{display:flex;border:1px solid var(--line);border-radius:12px;margin:12px 0;align-items:center}.profile-load{flex:1;min-width:0;text-align:left;padding:16px}.profile-load strong{display:block;color:var(--gold);overflow-wrap:anywhere}.profile-load small{display:block;margin-top:6px;color:var(--muted)}.profile-remove{min-width:48px;min-height:48px;margin:4px}
 
 /* Reserve horizontal gestures for page turns; retain vertical scrolling and pinch zoom. */
-body.pdf-reading[data-page-gestures="true"] #pdf-stage{touch-action:pan-y pinch-zoom}
+body.pdf-reading[data-page-gestures="true"] #pdf-stage{touch-action:auto}
+
+body.pdf-reading #pdf-stage{-webkit-overflow-scrolling:touch}
+body.pdf-reading[data-pdf-enlarged="true"] .pdf-image{user-select:none;-webkit-user-select:none}
+body.pdf-reading[data-pdf-enlarged="true"] #pdf-stage{cursor:grab}

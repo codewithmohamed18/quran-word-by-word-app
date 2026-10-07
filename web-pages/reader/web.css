@@ -6,3 +6,6 @@ body.immersive.pdf-reading #reader,body.immersive.fill-reading #reader{top:env(s
 #install-tip button{float:right;min-width:44px;min-height:44px}#offline-status{font-size:16px;line-height:1.5}
 
 .ayah-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.ayah-actions button{min-height:44px;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}.ayah-actions button[aria-pressed="true"]{border-color:var(--gold);font-weight:700}#offline-progress{width:100%;height:18px;accent-color:#183f38}.tools-actions button{min-height:44px}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #168579;outline-offset:3px}.setting label{font-size:16px}.setting small,.helper{font-size:14px!important;line-height:1.6}#sheet{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px)}@media(min-width:768px){.sheet-content{padding:24px}.tools-actions{gap:12px}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Installation hints must not cover reader menus or settings. */
+body:has(#sheet:not(.hidden)) #install-tip,body:has(#drawer:not(.hidden)) #install-tip{display:none}
