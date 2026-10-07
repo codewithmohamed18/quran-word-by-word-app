@@ -1,0 +1,10 @@
+@font-face{font-family:IndoPak;src:url('fonts/IndoPak.otf') format('opentype');font-display:swap}
+body.fill-reading[data-arabic-style="indopak"] .arabic,body.fill-reading[data-arabic-style="indopak"] .bismillah,body.fill-reading[data-arabic-style="indopak"] .surah-heading strong{font-family:IndoPak,Uthmani,serif!important;line-height:max(2.4,var(--reading-line))!important;font-synthesis:none}
+body[data-ayah-numbers="false"] .ayah-number{display:none}body[data-ayah-actions="false"] .ayah-actions{display:none}
+.saved-ayah{border-inline-start:3px solid #927026;background:rgba(197,166,74,.08)}.ayah-actions button[aria-pressed="true"]{background:#e9d69a;color:#302a16;border-color:#967523}
+#focus-bookmark,#bookmark{color:#19483b!important;background:#fff3cc!important;border:2px solid #5b6942!important;border-radius:12px;min-width:44px;min-height:44px;box-shadow:0 2px 8px #0003}
+#focus-bookmark.is-saved,#bookmark.is-saved{background:#1e4c3c!important;color:#ffe39b!important;border-color:#d3af59!important}
+.mode-settings-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:16px}.mode-settings-tabs button{padding:12px 8px;text-align:left;border:1px solid #a6b4ac;border-radius:10px;min-height:48px;font-size:14px}.mode-settings-tabs button[aria-current="page"]{background:#194b3c;color:white;border-color:#194b3c}.mode-settings-tabs button:last-child{grid-column:1/-1}
+.download-mode-row{padding:14px;border:1px solid #aab5ac;border-radius:12px;margin:10px 0}.download-mode-row strong{display:block;margin-bottom:8px}.download-mode-row .tools-actions{display:flex;flex-wrap:wrap;gap:8px}.download-mode-row button{min-height:44px}.offline-health{background:#e8f1e9;color:#163f30;padding:12px;border-radius:10px}.dark .download-mode-row{background:#19382f}.dark .offline-health{background:#173c30;color:#e5f4e8}
+@media(prefers-reduced-motion:reduce){.pdf-image{transition:none!important}}
+body.fill-reading .ayah-number{font-size:max(20px,.55em);font-family:Uthmani,serif;vertical-align:middle}

@@ -1,0 +1,91 @@
+/* Native hosts apply safe areas once. Keep the original v1.7 page and text sizes. */
+:root{--top-bar:52px;--bottom-bar:48px;--reading-line:1.9;--meaning-line:1.65;--page-brightness:1}
+header{height:var(--top-bar);min-height:var(--top-bar);padding:0 4px;gap:0;position:relative;z-index:4}
+header button{width:44px;min-width:44px;min-height:48px;flex:0 0 44px}
+header .title{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:clamp(13px,4vw,17px)}
+header .sub{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:12px;line-height:16px}
+footer{height:var(--bottom-bar);padding:0 8px}
+footer button{min-width:48px;min-height:48px}
+body.pdf-reading #reader,body.fill-reading #reader{top:var(--top-bar);bottom:var(--bottom-bar)}
+body.immersive.pdf-reading #reader,body.immersive.fill-reading #reader{top:0;bottom:0}
+body.pdf-reading .pdf-image{object-fit:fill}
+body.pdf-reading[data-pdf-layout="proportions"] .pdf-image{object-fit:contain}
+body.pdf-reading[data-pdf-layout="cover"] .pdf-image{object-fit:cover}
+body.pdf-reading[data-pdf-layout="width"] #pdf-stage{overflow-y:auto;overscroll-behavior:contain}
+body.pdf-reading[data-pdf-layout="width"] .pdf-image{height:auto;object-fit:fill;bottom:auto}
+body.large-controls{--top-bar:64px;--bottom-bar:60px}
+body.large-controls header button{font-size:30px}
+#page{filter:brightness(var(--page-brightness))}
+body.fill-reading #reader.reading-overflow .arabic{line-height:var(--reading-line)!important}
+body.fill-reading #reader.reading-overflow .translation{line-height:var(--meaning-line)!important}
+#reading-progress{position:absolute;top:0;left:0;height:3px;background:var(--gold);pointer-events:none}
+body.no-progress #reading-progress{display:none}
+.sheet-head{min-height:56px;flex:0 0 auto}.sheet-head h2{min-width:0;font-size:clamp(16px,5vw,20px)}
+.sheet-head button{flex:0 0 48px}.sheet-content{min-height:0;overscroll-behavior:contain}
+#drawer{max-width:100%;width:min(88vw,340px)}
+.setting{flex-wrap:wrap}.setting label{min-width:130px}.setting select{max-width:100%}
+.setting input[type=range]{max-width:100%;width:140px;accent-color:var(--gold)}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat-card{border:1px solid var(--line);border-radius:10px;padding:16px}.stat-card strong{display:block;font-size:24px;color:var(--gold)}
+.backup-text{width:100%;min-height:180px;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:12px;font:13px monospace}
+.note-text{width:100%;min-height:130px;padding:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);font:inherit}
+.tools-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+@media(max-height:450px){.drawer-head{padding:16px}.drawer-head .art{font-size:30px}}
+@media(min-width:700px){.sheet-content{width:100%;max-width:900px;margin:0 auto}}
+/* Focus reading keeps the page full screen; compact floating controls use the safe native viewport. */
+.focus-tools{display:none;position:fixed;inset:8px 8px auto;z-index:5;justify-content:space-between;pointer-events:none}
+.focus-tools button,.focus-bottom button{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;min-width:48px;min-height:48px;font-size:22px;box-shadow:0 2px 8px #0002;opacity:.92}
+.focus-bottom{display:none;position:fixed;bottom:8px;left:8px;right:8px;z-index:5;justify-content:space-between;align-items:center;pointer-events:none}
+.focus-bottom .focus-page{font-size:13px;padding:0 14px}
+body.immersive:not(.hide-focus-tools) .focus-tools,body.immersive:not(.hide-focus-tools) .focus-bottom{display:flex}
+#reading-guide{position:absolute;left:0;right:0;top:var(--guide-position,50%);height:0;border-top:2px solid var(--gold);box-shadow:0 -5px 12px #a37b3530;z-index:3;pointer-events:none;display:none}
+body.show-guide #reading-guide{display:block}
+#page{filter:brightness(var(--page-brightness)) contrast(var(--page-contrast,1)) sepia(var(--page-warmth,0))}
+body.word-reading[data-word-theme="warm"] .pdf-image{filter:grayscale(1) sepia(.32) contrast(1.08)}
+body.word-reading[data-word-theme="high-contrast"] .pdf-image{filter:grayscale(1) contrast(1.18)}
+.comfort-card{padding:16px;border:1px solid var(--line);border-radius:12px;text-align:left;background:var(--panel);margin-bottom:12px;width:100%}
+.comfort-card strong{display:block;font-size:18px;color:var(--gold)}.comfort-card small{display:block;color:var(--muted);line-height:1.6;margin-top:8px}
+/* Keep the central Qur'an heading unobstructed: quiet controls sit at the edges. */
+.focus-tools{height:104px}
+.focus-tools button{position:absolute;background:transparent;border:0;box-shadow:none;opacity:.7;text-shadow:0 1px 3px var(--panel)}
+#focus-menu{left:0;top:0}#focus-modes{left:0;top:56px}#focus-bookmark{right:0;top:0}#focus-exit{right:0;top:56px}
+.focus-bottom button{background:transparent;border:0;box-shadow:none;opacity:.75;text-shadow:0 1px 3px var(--panel)}
+.focus-bottom .focus-page{background:var(--panel);border:1px solid var(--line);border-radius:24px;min-height:48px;font-size:12px}
+/* Mode 3 is a margin-free Mushaf by default, with no app footer occupying the page. */
+body.immersive[data-minimal-mushaf="true"] #focus-modes,body.immersive[data-minimal-mushaf="true"] #focus-exit{display:none}
+body.immersive[data-minimal-mushaf="true"] #focus-menu,body.immersive[data-minimal-mushaf="true"] #focus-bookmark{opacity:.5}
+body.immersive[data-hide-mushaf-footer="true"] .focus-bottom{display:none}
+body.pdf-reading[data-pdf-enlarged="true"] #pdf-stage{overflow:auto;overscroll-behavior:contain}
+body.pdf-reading[data-pdf-enlarged="true"] .pdf-image{width:calc(100% * var(--pdf-scale,1));height:auto;max-width:none;bottom:auto;object-fit:fill}
+
+/* Native pinch stays available; JavaScript handles only intentional horizontal page turns. */
+#reader{touch-action:auto}
+#word-study-tools{display:none;position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:24px;opacity:.88;padding:0 6px;color:var(--ink)}
+#word-study-tools button{min-width:48px;min-height:48px;font-size:22px;background:transparent;border:0;color:var(--ink)}
+#word-study-tools span{font-size:12px}
+body.immersive[data-word-study="true"] #word-study-tools{display:flex}
+
+/* Controls should activate once, without a browser double-tap zoom. */
+button,input,select,textarea{touch-action:manipulation}
+@media(min-width:700px) and (max-height:500px){
+ .sheet-content.comfort-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:10px}
+ .comfort-options>.helper,.comfort-options>.action{grid-column:1 / -1}
+ .comfort-options>.comfort-card{margin:0;padding:12px;min-width:0}
+ .comfort-options>.comfort-card strong{font-size:17px}
+}
+
+/* Searchable sections keep the settings hierarchy consistent in every mode. */
+body.word-reading .pdf-image{filter:var(--word-filter,none)!important}
+.ordered-settings .settings-search{display:flex;gap:8px;align-items:center;margin:12px 0 16px}
+.settings-search .search{flex:1;min-width:0;font-size:16px}.settings-search button{min-width:48px;min-height:48px;border:1px solid var(--line);border-radius:10px}
+.ordered-settings .settings-section{border:1px solid var(--line);border-radius:12px;margin:12px 0;background:var(--panel)}
+.settings-section summary{min-height:52px;padding:14px 16px;cursor:pointer;font-weight:650;color:var(--gold);font-size:17px;touch-action:manipulation}
+.settings-section summary:focus-visible{outline:3px solid #218875;outline-offset:2px;border-radius:12px}
+.settings-section-body{padding:0 16px 14px}.settings-section-body>.setting{margin:0;border-bottom:1px solid var(--line);padding:14px 0}
+.settings-section-body>button{display:block;text-align:left;min-height:48px;width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;margin:10px 0 0}
+.ordered-settings [hidden]{display:none!important}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.profile-form{display:grid;gap:12px;margin:16px 0}.profile-form input{font-size:16px}.profile-row{display:flex;border:1px solid var(--line);border-radius:12px;margin:12px 0;align-items:center}.profile-load{flex:1;min-width:0;text-align:left;padding:16px}.profile-load strong{display:block;color:var(--gold);overflow-wrap:anywhere}.profile-load small{display:block;margin-top:6px;color:var(--muted)}.profile-remove{min-width:48px;min-height:48px;margin:4px}
+
+/* Reserve horizontal gestures for page turns; retain vertical scrolling and pinch zoom. */
+body.pdf-reading[data-page-gestures="true"] #pdf-stage{touch-action:pan-y pinch-zoom}
