@@ -1,0 +1,94 @@
+name: Build and publish Android v1.9 web reader
+on:
+  push:
+    branches: [main]
+    paths: ['android-v19/**', 'scripts/build-v19*', 'scripts/test-v19.sh', '.github/workflows/v19.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: android-v19
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Install build dependencies
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          pip install PyMuPDF==1.26.6 Pillow==11.3.0
+      - name: Build verified five-mode APK
+        run: |
+          python scripts/build-v19.py
+          bash scripts/build-v19-android.sh
+          bash scripts/build-v19-tests.sh
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging dist/Tajweed-and-Meaning-v1.9.apk | tee dist/v19-package.txt
+          grep "versionName='1.9'" dist/v19-package.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture README screenshots
+        run: |
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node scripts/capture-readme.cjs
+      - name: Publish documentation pictures
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/images/*.jpg
+          git diff --cached --quiet || git commit -m 'Add actual v1.9 reader screenshots'
+          git push origin HEAD:main
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android device verification
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_7_pro
+          ram-size: 3072M
+          disk-size: 4096M
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+          script: bash scripts/test-v19.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v19-checks
+          path: dist/v19-checks
+          if-no-files-found: ignore
+      - name: Publish public v1.9 download
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cd dist
+          sha256sum Tajweed-and-Meaning-v1.9.apk > SHA256SUMS-v1.9.txt
+          cat > v19-notes.md <<'EOF'
+          Android v1.9 packages the approved five-mode web reader. Includes searchable Surahs, bookmarks, organized settings and six 16-line page layouts.
+
+          Modes 1, 2, 3 and 5 are bundled for offline reading. Mode 4 uses its original online GitHub-hosted pages and supports saving pages for offline reading. The APK is large because it includes the original scans.
+
+          Install Tajweed-and-Meaning-v1.9.apk on Android 8 or newer. It installs as a separate app; earlier Android apps and their bookmarks remain intact. Website bookmarks are separate from APK bookmarks.
+
+          Neither website was changed for this Android release. iOS IPA and simulator downloads have been removed; use either website on iPhone/iPad.
+          EOF
+          gh release create v1.9 Tajweed-and-Meaning-v1.9.apk SHA256SUMS-v1.9.txt v19-source.json --target "$GITHUB_SHA" --title 'Tajweed & Meaning v1.9 — Five-mode Android reader' --notes-file v19-notes.md --latest

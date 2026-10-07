@@ -1,0 +1,27 @@
+name: Remove requested iOS downloads
+on:
+  push:
+    branches: [main]
+    paths: ['.github/ios-removal.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  remove-downloads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const requested = JSON.parse(require('fs').readFileSync('.github/ios-removal.json', 'utf8'));
+            const {owner, repo} = context.repo;
+            for (const asset of requested.assets) {
+              if (!/\.ipa$|ios.*simulator.*\.zip$/i.test(asset.name)) throw new Error('Only the requested iOS downloads may be removed');
+              let current;
+              try { current = await github.rest.repos.getReleaseAsset({owner, repo, asset_id: asset.id}); }
+              catch (error) { if (error.status === 404) continue; throw error; }
+              if (current.data.name !== asset.name) throw new Error('Asset mismatch');
+              await github.rest.repos.deleteReleaseAsset({owner, repo, asset_id: asset.id});
+              core.info(`Removed ${asset.name} (${asset.id})`);
+            }

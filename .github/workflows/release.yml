@@ -2,6 +2,17 @@ name: Build and publish Android and iOS
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - docs/**
+      - android-v19/**
+      - scripts/build-v19*
+      - scripts/test-v19.sh
+      - scripts/capture-readme.cjs
+      - .github/ios-removal.json
+      - .github/workflows/remove-ios.yml
+      - .github/workflows/v19.yml
+      - .github/workflows/release.yml
   pull_request:
   workflow_dispatch:
 permissions:
@@ -112,7 +123,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ios
-          path: dist/*iOS*
+          path: dist/*iOS-Simulator.zip
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -155,4 +166,5 @@ jobs:
 
           For general public iPhone installation, distribute through TestFlight or the App Store using an Apple Developer account. The complete iOS source is in this repository.
           EOF
-          gh release create "$TAG" downloads/* --target "$GITHUB_SHA" --title 'Tajweed & Meaning 1.8.5 — Clearer word pages & organized settings' --notes-file release-notes.md --latest
+          mapfile -t RELEASE_FILES < <(find downloads -maxdepth 1 -type f ! -iname '*.ipa' ! -iname '*iOS*Simulator*.zip' | sort)
+          gh release create "$TAG" "${RELEASE_FILES[@]}" --target "$GITHUB_SHA" --title 'Tajweed & Meaning 1.8.5 — Clearer word pages & organized settings' --notes-file release-notes.md --latest

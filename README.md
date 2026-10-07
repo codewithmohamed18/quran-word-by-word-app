@@ -1,103 +1,130 @@
-# Tajweed & Meaning — v1.8.5 clearer word pages & organized settings
+<div align="center">
 
-[Download releases](https://github.com/codewithmohamed18/quran-word-by-word-app/releases). Choose **Tajweed-and-Meaning-v1.8-Adaptive.apk** for Android. The original [v1.7 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.7-1) remains available unchanged.
+<img src="docs/images/banner.svg" alt="Tajweed and Meaning — a quiet space for the Quran" width="100%">
 
-## iPhone, iPad and browser version
+### Read • Understand • Reflect
 
-**[Open the public Qur’an reader](https://tajweed-meaning-ipad.lazify.chatgpt.site)** — no IPA signing, payment or account required.
+A Qur’an reader with word-by-word study, colour-coded Tajweed and a quiet full-page reading experience.
 
-On iPhone or iPad, open the link in Safari and choose **Share → Add to Home Screen → Add**. Send this same link to anyone using WhatsApp, email or text.
+**[Download Android v1.9](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.9)** · **[Open GitHub website](https://codewithmohamed18.github.io/quran-word-by-word-app/)** · **[Open ChatGPT website](https://tajweed-meaning-ipad.lazify.chatgpt.site/)**
 
-All three reading modes are included. Open **Menu → Save for offline reading** to download all scans (about 210 MB); browser storage may be cleared or evicted. Bookmarks and settings stay on each device.
+![Modes](https://img.shields.io/badge/Reading-5_modes-207965?style=flat-square)
+![Android](https://img.shields.io/badge/Android-v1.9-c7a45c?style=flat-square)
+![Offline](https://img.shields.io/badge/Offline-Bundled_%2B_downloadable_pages-207965?style=flat-square)
 
-The Safari source is in [`web-safari/`](web-safari/). To rebuild:
+</div>
+
+## A look inside
+
+<table><tr>
+<td align="center"><img src="docs/images/mode5.jpg" width="260" alt="16-line colour-coded Tajweed filling the reading screen"><br><strong>16-line Tajweed</strong><br>More Arabic, less empty space.</td>
+<td align="center"><img src="docs/images/mode1.jpg" width="260" alt="Arabic-English word-by-word reading"><br><strong>Word-by-word study</strong><br>Read and understand together.</td>
+<td align="center"><img src="docs/images/settings.jpg" width="260" alt="Settings organized by reading mode"><br><strong>Make it yours</strong><br>Settings organized by mode.</td>
+</tr></table>
+
+*Real screenshots of the reader packaged in v1.9. Android uses the device’s native safe areas around the reading screen.*
+
+## Five ways to read
+
+| Mode | What you’ll find |
+| --- | --- |
+| **1 · Word by word** | Original Arabic–English scans with study enlargement and reading controls. |
+| **2 · Tajweed & meaning** | Indo-Pak Arabic styling, colour-coded text, Hilali–Khan meaning and ayah bookmarks. |
+| **3 · 13-line Mushaf** | Colour-coded Tajweed scans with a quiet full-page view. |
+| **4 · Study the Noble Qur’an** | All three volumes in one reading collection. |
+| **5 · 16-line Tajweed** | All 561 source pages, searchable Surah navigation and six page layouts. |
+
+Mode 5 preserves the original Arabic, ayah numbers and printed Tajweed colours. Choose **16-line full screen**, **Fit Arabic area** or **Arabic width and scroll**. Choose **Original complete page** to see every printed margin note. Covers and reference pages remain available.
+
+## Start reading
+
+### Android v1.9
+
+1. Open the [v1.9 release](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.9).
+2. Download **Tajweed-and-Meaning-v1.9.apk**.
+3. Open it and allow installation from that source when Android asks.
+4. Open **Tajweed & Meaning 1.9** and choose a reading mode.
+
+Android 8 or newer is required. Modes **1, 2, 3 and 5 are bundled** for offline reading. Mode 4 uses its online source pages and the reader’s download option. The APK is large because it includes the original high-quality scans.
+
+v1.9 installs as a **separate app** from the older adaptive reader. Existing apps and their bookmarks stay intact. Bookmarks do not automatically transfer between apps or websites; use the backup tools where available.
+
+### iPhone and iPad
+
+Open either website in **Safari**, then tap **Share → Add to Home Screen → Add**. No IPA installation, Apple signing, payment or account is needed. Public IPA and iOS simulator downloads have been removed; use the web reader on these devices.
+
+### Laptop, desktop and other browsers
+
+Open either website. Keyboard navigation is supported: **right arrow advances**, **left arrow goes back**, following the reader’s Arabic page order.
+
+## Read comfortably
+
+- **Surah and Juz navigation** to jump to your reading.
+- **Page bookmarks** and **Mode 2 ayah bookmarks** to return to your place.
+- **Per-mode layouts and magnification** to suit your screen.
+- **Zoom and pan** in both directions on enlarged pages.
+- **Quiet full-page reading**, with controls available when you tap.
+- **Organized settings** for Mode 1, 2, 3, 4, 5 and General.
+- **Saved reading setups**, settings search, backup and restore.
+
+## Offline reading
+
+In the Android v1.9 APK, bundled modes are available without downloading them again. To save Mode 4 pages, connect first and use **Menu → Downloads & offline reading**.
+
+On either website, use that menu while online to save a page, Surah, Juz or full reading mode where offered. Wait for the download to finish before disconnecting. Scanned collections are large; smaller downloads help when storage is limited.
+
+Browser storage can be cleared or evicted. Keep a backup of important bookmarks. The two websites and the APK each store their own reading data.
+
+## Share with someone
+
+Send this link by WhatsApp, email or text:
+
+**https://codewithmohamed18.github.io/quran-word-by-word-app/**
+
+For Android installation, send the [public v1.9 download page](https://github.com/codewithmohamed18/quran-word-by-word-app/releases/tag/v1.9).
+
+The GitHub and ChatGPT websites are hosted independently. Updates are published separately. This Android release packages the approved web reader; it does not change either website.
+
+## Sources and care for the text
+
+Source scans are displayed without rewriting their printed Arabic or translations. Mode 2’s meaning uses the Muhammad Muhsin Khan and Muhammad Taqi-ud-Din al-Hilali translation.
+
+- [Word-by-word Juz collection](https://haameem7.wordpress.com/2023/01/07/quran-arabic-english-word-by-word-translation-juz-pdf/)
+- [Study the Noble Qur’an · three volumes](https://www.kalamullah.com/study-the-noble-quran.html)
+- [16-line colour-coded Tajweed · original PDF](https://quranpdf.wordpress.com/wp-content/uploads/2014/12/quran-16-lines-tajwedi-hammad-company1.pdf)
+
+Printed editions use their own colour conventions. Mode 5 includes its original reference pages. Display settings cannot recover detail absent from the scans. Report a content or navigation problem with the mode, Surah and page number so it can be checked against the source.
+
+## For contributors
+
+| Location | Purpose |
+| --- | --- |
+| `android-v19/` | Android v1.9 wrapper for the approved five-mode reader. |
+| `scripts/build-v19.py` | Build and verify the pinned web snapshot for the APK. |
+| `scripts/build-v19-android.sh` | Compile, align and sign the APK. |
+| `android/` | Earlier native Android source. |
+| `ios/` | Archived native iOS development source; no public iOS downloads. |
+| [`github-pages-web` branch](https://github.com/codewithmohamed18/quran-word-by-word-app/tree/github-pages-web) | Published web snapshot and Pages build. |
+| `payload/`, `payload-manifest.json` | Verified original supplied APK archive. |
+
+### Build Android v1.9
+
+Install JDK 17, Python 3, Android SDK platform 35 and build-tools 35.0.0. Set `ANDROID_HOME`, then run:
 
 ```sh
-pip install PyMuPDF==1.26.6 Pillow
-python scripts/build-web.py
-python -m http.server 8000 --directory dist/web
+pip install PyMuPDF==1.26.6 Pillow==11.3.0
+python scripts/build-v19.py
+bash scripts/build-v19-android.sh
 ```
 
-Publish the contents of `dist/web` on an HTTPS static host for Home Screen and offline support. The builder reconstructs verified source assets and extracts all 1810 page scans without JPEG recompression. Generated files are ignored; the existing payload contains the original source data.
+Output: `dist/Tajweed-and-Meaning-v1.9.apk`. The build pins the approved GitHub web commit, verifies every source file, and bundles the original scans. Mode 5 JPEGs are extracted without reencoding. The checked-in development signing certificate provides installable builds; it is not a production store certificate.
 
-## What changed in v1.8.5
+## Feedback
 
-- Mode 1 uses lossless display frames and memory-bounded rendering levels, plus gentle edge clarity that can be disabled.
-- Settings have eight ordered, searchable sections, with explicit mode-specific headings.
-- Save up to eight named reading setups, restore them with one tap, and include them in offline backups.
-- Reset the current mode’s layout without erasing bookmarks or changing other modes’ layouts.
+Have a suggestion or found a problem? [Open an issue](https://github.com/codewithmohamed18/quran-word-by-word-app/issues). Include your device, reading mode, page number and a screenshot when helpful.
 
-## Existing v1.8.3 Mushaf improvements
+<div align="center">
 
-- Mode 3 now trims only the unused scanned margins at rendering time, retaining all detected ink, headings, border, side notes and printed page numbers. The PDF itself is unchanged. `config/plain-crops.json` records 850 page-specific bounds; preparation recomputes and verifies every rectangle.
-- Mode 3 defaults to full-page focus, with only menu/bookmark corner controls and no floating footer. Tap the page to restore the full toolbar. Settings can enable the footer, secondary controls or standard reading view.
-- PDF magnification 100–250%, saved per PDF mode. The gesture setting chooses page turns or horizontal panning. Start at the Arabic right-hand edge. Existing pinch zoom remains available.
-- Google Play reader feedback informed this focus on small-screen enlargement and overlays that do not obscure text: https://play.google.com/store/apps/details?id=org.haris.quran
+**May this make it easier to return to the Qur’an, one page at a time.**
 
-## Existing v1.8.2 improvements
-
-- Full-page focus view has safe floating menu/mode/bookmark and RTL page controls instead of full toolbars. Optional launch-in-focus and an unobstructed-page toggle. System safe areas remain enforced on Android and iOS.
-- Reading comfort presets: original v1.7, larger relaxed reading (scrolling PDF/46px Arabic/24px English), quiet evening, and full-page focus.
-- Word-by-word paper options now include warm parchment and high-contrast monochrome. Adjustable page contrast, paper warmth and an optional movable line guide. Original appearance remains the default; warmth changes displayed Tajweed colours only when explicitly enabled.
-- Swipe page turns can be disabled; buttons remain usable. All changes preserve bundled text/translation and work offline.
-
-## Existing v1.8.1 improvements
-
-- Restores v1.7 full-page PDF fill in all orientations by default. Arabic and English text sizes in mode 2 remain the original readable sizes; no automatic shrinking.
-- Four PDF layouts, saved independently for word-by-word and plain: v1.7 full page, original proportions, fit width with vertical scrolling, and crop to fill. Crop can hide edges; use fit width when preserving page shape with larger text matters.
-- Standard compact safe-area toolbar; optional larger controls. Tap-to-hide controls can be disabled. External keyboard right arrow advances, left arrow goes back, following Arabic page order.
-- Bookmark notes, page progress, page dimmer, Arabic/English line spacing, daily page goal and local reading statistics. Statistics count unique pages per mode/day and foreground reading time, excluding menus/background time.
-- Offline copy/paste backup and validated restore for bookmarks, notes, settings, last pages and statistics. Reset display settings keeps reading data. Backups from the separate v1.7 app are not automatically accessible.
-- Android version code 19 updates an existing adaptive v1.8 installation; iOS marketing version 1.8.1/build 19.
-
-## Existing v1.8 improvements
-
-- Native safe-area layout excludes Android status bars, display cutouts, navigation bars and the keyboard. Fullscreen retains cutout protection.
-- Dedicated Reading modes button, large toolbar targets, responsive phone/tablet and landscape controls. The compact toolbar preserves reading space; pinch zoom remains available.
-- Original three offline reading modes, Arabic page direction, themes, bookmarks and navigation retained.
-- Lossless PDF cleanup preserves every original compressed image stream. Page sizes/rotation are verified, and first/middle/last page raster comparisons must match exactly.
-- Android renders seekable PDF assets directly from the APK through a storage proxy: no extra full-size PDF copies in private storage. The APK itself remains large because it contains two complete high-quality scanned PDFs. Lossless cleanup saves about 1.1 MB; installed storage saves roughly another 185 MB compared with copying both PDFs.
-
-**Installation:** v1.8 uses a separate application ID and installs alongside v1.7. The supplied APK's signing key/source were not provided, so this is not an in-place update. Existing v1.7 bookmarks stay in v1.7; v1.8 starts its own state. Future v1.8 debug builds use the checked-in debug certificate; it is for testing, not a production signing secret.
-
-## Android source and build
-
-Android source is in `android/src/main`. It uses Android's native WebView and PdfRenderer (Android 8 / API 26 or newer), with no network or storage permission. `web-overrides` contains the small responsive additions to the supplied app's own HTML/assets. It retains the original supplied app's title and content.
-
-Install JDK 17, Python 3, Android SDK platform 35 and build-tools 35.0.0, set `ANDROID_HOME`, then run:
-
-```sh
-pip install PyMuPDF==1.26.6
-python scripts/prepare-v18.py
-bash scripts/build-android.sh
-```
-
-The output is `dist/Tajweed-and-Meaning-v1.8-Adaptive.apk`. This complete repository can be opened as a folder in Android Studio; the platform build script is the authoritative build and does not require Gradle dependencies.
-
-Every push to main builds Android and iOS in GitHub Actions. Android instrumentation uses actual pointer taps to verify modes/bookmarks, rendered pages from both bundled PDFs, bookmark persistence, minimum touch targets, native safe areas and absence of duplicate PDFs. It runs with Wi-Fi/data disabled on cutout, compact phone, landscape and tablet Android 15 display profiles. Screenshots and test logs are uploaded as `android-checks` artifacts. Emulator checks are representative, not a claim of testing every physical phone.
-
-## iOS
-
-The UIKit/WKWebView port is in `ios/`, with XcodeGen project configuration and native Core Graphics PDF rendering. Its native view already follows safe-area constraints; it receives the same responsive controls and lossless assets in v1.8. The build runs iPhone simulator UI tests.
-
-An **UNSIGNED IPA cannot be installed directly** on an iPhone. Sign locally or configure Apple certificate/provisioning secrets; the optional signed export works only for provisioned devices. Public iPhone distribution requires TestFlight or App Store distribution. The simulator ZIP is for Xcode's simulator only.
-
-## Original supplied app archive
-
-The exact supplied v1.7 APK is stored in `payload/` as binary chunks because of repository size limits. `payload-manifest.json` records its checksum and asset hashes. `scripts/prepare.py` reconstructs and verifies it before extraction. These archived bytes are never changed by the adaptive build. The original APK is included alongside v1.8 in releases.
-
-The repository is public. Release downloads and source are available to everyone. No advertisements, login, file picker or online PDF download are added.
-
-
-### 1.8.4 reading improvements
-
-Swipe right for the next page and left for the previous page in both PDF modes. The master switch is in Settings. The new Horizontal gesture setting chooses page turns (default, also at PDF magnification) or sideways PDF panning. Native pinch zoom pans until zoomed back out; vertical scrolling stays available in either gesture mode.
-
-Mode 1 → Reading comfort → Word-by-word study enlarges the original scan to 200% and enters a safe full-screen view. Use the up/down section controls to move across and down with overlap, then advance to the next page at the end. Choose 50%, 75% or 90% screen steps in Settings. No PDF words are cut, rearranged or rewritten. Choose Original v1.7 to restore the original full-page size. Mode 1 can optionally open in full-page view on future launches.
-
-
-### 1.8.5 page clarity and settings
-
-Mode 1 uses lossless PNG frames instead of JPEG recompression, with Clear (default), Fast and Maximum rendering levels. Bitmap dimensions are capped by a memory budget on Android and iOS. A smaller three-frame cache bounds retained image data, and stale quality requests cannot replace the selected quality. Optional gentle/strong edge clarity improves edge emphasis without reconstructing or changing the source Arabic/translation. Mode 3 retains its rendering pipeline. The original scanned images are about 765 × 1040 pixels; no rendering setting can recover detail absent from those scans. The PDF image streams remain byte-for-byte unchanged.
-
-Settings now use eight ordered sections, with mode-specific headings and relevant default expansion. Search filters settings and restores the prior section state when cleared. Saved reading setups preserve the selected mode, focus state and settings (up to eight named setups), are stored offline and included in validated backups. Reset this mode’s layout leaves other modes’ layouts, bookmarks and reading history intact.
+</div>
