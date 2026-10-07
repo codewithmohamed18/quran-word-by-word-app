@@ -87,13 +87,13 @@ jobs:
 
           Modes 1, 2, 3, 5, 6 and 7 are bundled for offline reading. Mode 4 uses its original online GitHub-hosted pages and supports saving pages for offline reading. The APK is large because it includes the original scans.
 
-          Install Tajweed-and-Meaning-v1.9.apk on Android 8 or newer. It installs as a separate app; earlier Android apps and their bookmarks remain intact. Website bookmarks are separate from APK bookmarks.
+          Install Tajweed-and-Meaning-v1.9.apk on Android 8 or newer. This refreshed v1.9 updates an existing v1.9 installation and preserves its data. It remains separate from older Android app editions. Website bookmarks are separate from APK bookmarks.
 
-          Neither website was changed for this Android release. iOS IPA and simulator downloads have been removed; use either website on iPhone/iPad.
+          The GitHub website and APK now use the approved seven-mode reader. Mode 2 is named Word by word full page translation. Daily page goals accept typed values alongside the presets. iOS IPA and simulator downloads have been removed; use either website on iPhone/iPad.
           EOF
           if gh release view v1.9 >/dev/null 2>&1; then
             gh release upload v1.9 Tajweed-and-Meaning-v1.9.apk SHA256SUMS-v1.9.txt v19-source.json --clobber
-            gh release edit v1.9 --notes-file v19-notes.md --latest
+            gh release edit v1.9 --title 'Tajweed & Meaning v1.9 — Seven-mode Android reader' --notes-file v19-notes.md --latest
           else
             gh release create v1.9 Tajweed-and-Meaning-v1.9.apk SHA256SUMS-v1.9.txt v19-source.json --target "$GITHUB_SHA" --title 'Tajweed & Meaning v1.9 — Five-mode Android reader' --notes-file v19-notes.md --latest
 
