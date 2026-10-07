@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths: ['.github/workflows/reader-docs.yml']
   workflow_dispatch:
+concurrency:
+  group: reader-docs
+  cancel-in-progress: true
 jobs:
   pause_android:
     runs-on: ubuntu-latest
@@ -15,9 +18,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          status=$(gh run view 37687798598 --json status --jq .status)
-          if [ "$status" != completed ]; then gh run cancel 37687798598; fi
+          for id in 37687798598 37688088693; do
+            status=$(gh run view "$id" --json status --jq .status)
+            if [ "$status" != completed ]; then gh run cancel "$id"; fi
+          done
   screenshots:
+    needs: pause_android
     runs-on: ubuntu-latest
     permissions:
       contents: write
