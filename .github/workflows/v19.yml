@@ -8,9 +8,10 @@ permissions:
   contents: write
 concurrency:
   group: android-v19
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   build:
+    if: ${{ false }} # APK work paused at the owner’s request; resume explicitly.
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:

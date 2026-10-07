@@ -1,0 +1,42 @@
+name: Finish website screenshots and pause Android release
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/reader-docs.yml']
+  workflow_dispatch:
+jobs:
+  pause_android:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Pause the already-started Android build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          status=$(gh run view 37687798598 --json status --jq .status)
+          if [ "$status" != completed ]; then gh run cancel 37687798598; fi
+  screenshots:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture all modes from the published website
+        env:
+          READER_SCREENSHOT_BASE: https://codewithmohamed18.github.io/quran-word-by-word-app/
+        run: |
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node scripts/capture-readme.cjs
+      - name: Publish the illustrated guide
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/images/*.jpg
+          git diff --cached --quiet || git commit -m 'Document all seven published reading modes with screenshots'
+          git push origin HEAD:main
