@@ -55,7 +55,7 @@ Your reading positions, settings, bookmarks and statistics are stored on your de
 
 **Android:** the current public v1.9 download is the earlier five-mode edition. The seven-mode APK update is paused at the owner’s request; use the website for the latest seven modes and typed page goal. To install the current edition, download `Tajweed-and-Meaning-v1.9.apk` from the release above. Open the downloaded file and allow installation from the browser or file manager if Android asks. Requires Android 8 or newer. The refreshed seven-mode APK will be published separately when its Android checks are complete.
 
-**iPhone / iPad:** open the website in Safari, tap **Share → Add to Home Screen**. Open the new Home Screen icon to read like an app. APK files are for Android; IPA and simulator packages are not offered.
+**Android / iOS:** open the website in Safari or Chrome or any broswer, tap **Share → Add to Home Screen as Web App**. Open the new Home Screen icon to read like an app. APK files are for Android; IPA and simulator packages are not offered.
 
 **Computer:** open the website in your browser. Use the browser’s install option if available.
 
