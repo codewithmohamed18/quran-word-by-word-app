@@ -2,11 +2,11 @@
 let webWorkerReady,offlineStartupError=null;
 async function ensureOfflineReady(){
  if(!('serviceWorker' in navigator)||!('caches' in window)||!isSecureContext)throw new DOMException('Offline storage is unavailable in this browser.','SecurityError');
- const registration=await navigator.serviceWorker.register('./sw.js?v=16',{updateViaCache:'none'});
+ const registration=await navigator.serviceWorker.register('./sw.js?v=19',{updateViaCache:'none'});
  const worker=registration.installing||registration.waiting;
  if(worker&&worker.state!=='activated')await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{worker.removeEventListener('statechange',changed);reject(Error('Setup took too long; saved files are kept.'))},45000);function changed(){if(worker.state==='activated'){clearTimeout(timeout);worker.removeEventListener('statechange',changed);resolve()}else if(worker.state==='redundant'){clearTimeout(timeout);worker.removeEventListener('statechange',changed);reject(Error('App resources could not be saved.'))}}worker.addEventListener('statechange',changed);changed()});
  if(!registration.active)throw Error('The offline reader is still starting. Retry setup.');
- const shell=await caches.open('quran-shell-v16');for(const file of ['index.html','data.js?v=16','web-upgrade.js?v=16','fonts/IndoPak.otf'])if(!await shell.match(file))throw Error('App download is incomplete. Retry setup while online.');
+ const shell=await caches.open('quran-shell-v19');for(const file of ['index.html','data.js?v=19','web-upgrade.js?v=19','fonts/IndoPak.otf'])if(!await shell.match(file))throw Error('App download is incomplete. Retry setup while online.');
  offlineStartupError=null;return registration;
 }
 webWorkerReady=ensureOfflineReady().catch(e=>{offlineStartupError=e;return null});
