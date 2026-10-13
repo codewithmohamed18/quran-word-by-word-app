@@ -55,7 +55,7 @@ function orderSettings(){
  const nodes=new Map();groups.forEach(([, ,ids])=>ids.forEach(id=>{const input=$(id);if(input)nodes.set(id,input.closest('.setting')||input)}));
  const quick=$('comfort-open');content.replaceChildren();content.classList.add('ordered-settings');
  const introduction=document.createElement('p');introduction.className='helper';introduction.textContent='Settings save automatically on this device. '+modeLabel(mode)+' is the current mode. Mode-specific sections are labelled below.';content.appendChild(introduction);
- const search=document.createElement('div');search.className='settings-search';search.innerHTML='<label class="visually-hidden" for="settings-search">Search settings</label><input id="settings-search" aria-label="Search settings" type="search" class="search" placeholder="Search settings…" autocomplete="off"><button id="clear-settings-search" aria-label="Clear settings search">✕</button>';content.appendChild(search);
+
  if(quick)content.appendChild(quick);
  groups.forEach(([key,title,ids,open])=>{
   const section=document.createElement('details');section.className='settings-section';section.id='settings-'+key;section.open=open;
@@ -67,11 +67,7 @@ function orderSettings(){
    node.dataset.settingId=id;node.classList.add('searchable-setting');rows.appendChild(node);
   });section.appendChild(rows);if(rows.children.length)content.appendChild(section);
  });
- const empty=document.createElement('p');empty.id='settings-search-empty';empty.className='helper';empty.hidden=true;empty.textContent='No settings match. Try “zoom”, “page”, “colour” or “bookmark”.';content.appendChild(empty);
- // Useful search words stay associated with the visible labels.
- const keywords={ 'pdf-magnification':'zoom enlarge magnify', 'word-quality':'blur sharp resolution image', 'word-edges':'blur sharp letters', 'reading-backup':'bookmarks notes restore export', 'dark':'night theme', 'word-study':'sections larger translation' };
- let initialOpen=null;const filter=()=>{const query=$('settings-search').value.trim().toLowerCase();if(query&&!initialOpen)initialOpen=new Map([...content.querySelectorAll('details')].map(s=>[s.id,s.open]));let count=0;content.querySelectorAll('details').forEach(section=>{let matches=0;section.querySelectorAll('.searchable-setting').forEach(row=>{const text=(section.querySelector('summary').textContent+' '+row.textContent+' '+(keywords[row.dataset.settingId]||'')).toLowerCase();row.hidden=!!query&&!text.includes(query);if(!row.hidden)matches++});section.hidden=matches===0;if(matches){count+=matches;if(query)section.open=true;else if(initialOpen)section.open=initialOpen.get(section.id)}});empty.hidden=count!==0;if(!query)initialOpen=null;if(quick)quick.hidden=!!query;};
- $('settings-search').oninput=filter;$('clear-settings-search').onclick=()=>{$('settings-search').value='';filter()};
+
 }
 const organizedScreen=screen;screen=function(id){if(id==='profiles'){showProfiles();return}organizedScreen(id);if(id==='settings')orderSettings()};
 const profilesDrawer=drawer;drawer=function(){profilesDrawer();const b=document.createElement('button');b.className='drawer-row';b.innerHTML='<span class="icon">▤</span>Saved reading setups';b.onclick=()=>screen('profiles');$('drawer').querySelector('.drawer-bottom').before(b)};$('menu').onclick=drawer;$('focus-menu').onclick=drawer;

@@ -136,5 +136,5 @@ if(load('tm-plain-edition',0)<14){save('tm-plain-reflow-page',load('tm-plain-pag
 if(load('tm-readable-fonts',0)<16){prefs.size=Math.max(36,prefs.size||36);prefs.englishSize=20;save('tm-readable-fonts',16)}
 // Migrate older layouts once, including a saved original-proportions setting.
 if(load('tm-layout-version',0)<13){prefs.pdfFit='fill';prefs.motion=true;save('tm-layout-version',13)}
-$('top-label').onclick=()=>screen('modes');$('top-label').setAttribute('role','button');$('top-label').setAttribute('tabindex','0');$('top-label').setAttribute('aria-label','Choose one of seven reading modes');$('top-label').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();screen('modes')}};
+$('top-label').onclick=()=>screen('surahs');$('reading-modes-title').onclick=()=>screen('modes');
 applyPrefs();render();

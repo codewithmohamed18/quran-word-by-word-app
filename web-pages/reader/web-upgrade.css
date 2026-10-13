@@ -13,3 +13,28 @@ body.fill-reading .ayah-number{font-size:max(20px,.55em);font-family:Uthmani,ser
 body.immersive .focus-tools,body.immersive .focus-bottom,body.immersive #word-study-tools{display:none!important}
 body[data-word-study="true"]:not(.immersive) #word-study-tools{display:flex;bottom:calc(var(--bottom-bar) + env(safe-area-inset-bottom));height:48px;opacity:1;border-radius:0;left:0;right:0;transform:none;justify-content:center;border-top:1px solid var(--line)}
 body[data-word-study="true"]:not(.immersive) #reader{bottom:calc(var(--bottom-bar) + 48px + env(safe-area-inset-bottom))}
+
+#settings-reading-modes .mode-settings-tabs{padding:0 16px 16px;margin-bottom:0}
+.general-settings-body{padding:0 12px 12px}
+.general-settings-body>.tools-actions{padding:0 4px}
+.general-settings-body .settings-section{margin:8px 0}
+
+/* Keep the two header shortcuts together in a compact title stack. */
+:root{--top-bar:56px}
+body.large-controls{--top-bar:64px}
+header .title{display:flex;flex-direction:column;align-self:stretch;justify-content:center;gap:0}
+header .title button{width:100%;min-width:0;min-height:0;flex:none;padding:0 6px;margin:0;text-align:left;font-size:inherit;font-weight:650;line-height:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:6px}
+header .title #top-label{font-size:14px;font-weight:400;line-height:18px;color:var(--muted)}
+header .title button:focus-visible{outline:3px solid #218875;outline-offset:-3px}
+body.large-controls header .title button{min-height:0;line-height:26px}
+body.large-controls header .title #top-label{line-height:20px}
+.list-row.current-surah{background:rgba(163,123,53,.12);border-inline-start:4px solid var(--gold)}
+.current-surah-label{display:block;font-size:14px;color:var(--gold);font-weight:600;margin-top:4px}
+
+header .header-reading-context{display:flex;align-items:center;gap:4px;min-width:0;width:100%}
+header .header-reading-context button{width:auto;line-height:18px;font-size:14px;font-weight:400;color:var(--muted);padding:0}
+header .header-reading-context #header-mode-label{flex:0 1 auto;max-width:55%;padding-left:6px}
+header .header-reading-context #top-label{flex:1 1 0;min-width:0;padding-right:6px}
+header .header-context-divider{flex:none;color:var(--muted);font-size:14px;line-height:18px}
+header .header-reading-context #header-mode-label:after{content:' ▾';color:var(--gold)}
+body.large-controls header .header-reading-context button{line-height:20px;font-size:14px}

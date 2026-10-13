@@ -87,7 +87,7 @@ reader.setAttribute('aria-label','Qur’an reading page. Tap to show or hide the
 const namedModesScreen=screen;screen=function(id){
  namedModesScreen(id);
  if(id==='modes')for(const [i,[m]]of readerModes.entries()){const card=$(m+'-mode');card.querySelector('strong').textContent=(i+1)+'. '+modeLabel(m);$('sheet').querySelector('.sheet-content').appendChild(card)}
- if(id==='stats'||(id==='settings'&&settingsTab==='general')){
+ if(id==='stats'||id==='settings'){
   const content=$('sheet').querySelector('.sheet-content');
   const box=document.createElement('div');box.className='tools-actions';box.innerHTML='<button id="reset-reading-goal">Reset reading goal</button><button id="clear-reading-statistics">Clear reading statistics</button>';content.appendChild(box);
   $('reset-reading-goal').onclick=()=>{prefs.goal=10;applyPrefs();screen(id);toast('Reading goal reset to 10 pages a day')};
@@ -100,9 +100,73 @@ function confirmStatisticsReset(back){
  $('confirm-statistics-reset').onclick=()=>{readingStats={days:{}};lastTick=Date.now();persistStats();screen(back);toast('Reading statistics cleared')};
 }
 
-const customGoalScreen=screen;screen=function(id){customGoalScreen(id);if(id==='stats'||(id==='settings'&&settingsTab==='general')){
+const customGoalScreen=screen;screen=function(id){customGoalScreen(id);if(id==='stats'||id==='settings'){
  const form=document.createElement('form');form.id='custom-goal-form';form.innerHTML='<div class="setting"><label for="custom-daily-goal">Type your daily page goal<small>Choose a whole number from 1 to 10,000. The preset choices above remain available.</small></label><input id="custom-daily-goal" type="number" min="1" max="10000" step="1" required inputmode="numeric" value="'+clamp(prefs.goal,1,10000,10)+'" style="width:7em;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)"></div><button class="action" type="submit">Save page goal</button><p id="custom-goal-message" class="helper" role="status"></p>';
  $('daily-goal').closest('.setting').after(form);
  $('daily-goal').addEventListener('change',()=>{$('custom-daily-goal').value=prefs.goal});
  form.onsubmit=e=>{e.preventDefault();const n=Number($('custom-daily-goal').value);if(!Number.isInteger(n)||n<1||n>10000){$('custom-goal-message').textContent='Enter a whole number from 1 to 10,000.';return}prefs.goal=n;applyPrefs();screen(id);toast('Daily goal saved: '+n+' pages')};
 }};
+
+// Organize the existing controls without replacing their event handlers.
+function tidyReadingSettings(modesOpen,generalOpen){
+ const content=$('sheet').querySelector('.sheet-content'),nav=content.querySelector('.mode-settings-tabs');
+ const modeBox=[...content.children].find(n=>n.matches('details.settings-section'));
+ const shared=[...content.children].filter(n=>n.matches('details.settings-section')&&n!==modeBox);
+ const modesBox=document.createElement('details');modesBox.id='settings-reading-modes';modesBox.className='settings-section';modesBox.open=modesOpen;
+ const modeHeading=document.createElement('summary');modeHeading.textContent='Reading modes';modesBox.append(modeHeading,nav);content.prepend(modesBox);
+ const general=document.createElement('details');general.id='settings-general-options';general.className='settings-section';general.open=generalOpen||settingsTab==='general';
+ const generalHeading=document.createElement('summary');generalHeading.textContent='General settings';const generalBody=document.createElement('div');generalBody.className='general-settings-body';general.append(generalHeading,generalBody);content.appendChild(general);
+ for(const section of shared){section.hidden=false;generalBody.appendChild(section)}
+ // Downloads apply to all editions; keep a single original button.
+ const downloads=$('settings-downloads');if(downloads){const section=document.createElement('details');section.className='settings-section';section.innerHTML='<summary>Offline downloads</summary><div class="settings-section-body"></div>';section.lastElementChild.appendChild(downloads);generalBody.prepend(section)}
+ const resets=$('reset-reading-goal')?.parentElement;if(resets)generalBody.appendChild(resets);
+ if(settingsTab==='general'){modeBox.remove();modesBox.after(general)}
+ else{
+  const modeBody=modeBox.querySelector('.settings-section-body');modeBox.open=true;
+  const groups=[['Page layout & zoom',['pdf-fit','pdf-magnification']],['Reading appearance',['word-theme','word-quality','word-edges','arabic-style','meaning','size','english-size','reading-line','meaning-line','ayah-numbers']],['Controls',['ayah-actions','settings-saved-ayahs','word-study','study-step','word-fullscreen','mushaf-fullscreen','sixteen-fullscreen','fifteen-fullscreen','madina-fullscreen','reset-mode-layout']]];
+  const sections=[];
+  for(const [title,ids]of groups){const section=document.createElement('details');section.className='settings-section';section.open=true;section.innerHTML='<summary>'+title+'</summary><div class="settings-section-body"></div>';for(const id of ids){const input=$(id),node=input?.closest('.setting')||input;if(node&&!node.classList.contains('hidden'))section.lastElementChild.appendChild(node)}if(section.lastElementChild.children.length)sections.push(section)}
+  // Any edition-specific options added later remain reachable under Controls.
+  if(modeBody.children.length){let controls=sections.find(s=>s.firstElementChild.textContent==='Controls');if(!controls){controls=document.createElement('details');controls.className='settings-section';controls.open=true;controls.innerHTML='<summary>Controls</summary><div class="settings-section-body"></div>';sections.push(controls)}while(modeBody.firstChild)controls.lastElementChild.appendChild(modeBody.firstChild)}
+  modeBody.append(...sections);modeBox.after(general);
+ }
+ const hint=content.querySelector('p.helper');if(hint)hint.textContent='Changes save automatically.';
+}
+const tidySettingsScreen=screen;screen=function(id){
+ const initial=$('sheet').classList.contains('hidden');
+ const modesOpen=!initial&&!!$('settings-reading-modes')?.open,generalOpen=!initial&&!!$('settings-general-options')?.open;
+ tidySettingsScreen(id);if(id==='settings')tidyReadingSettings(modesOpen,generalOpen);
+};
+
+function currentIndexSurah(){
+ if(mode==='tajweed')return QURAN.pages[page]?.[0]?.s||null;
+ if(mode==='plain')return page>=PLAIN_NAV.firstPage?PLAIN_NAV.headers[page]?.s||null:null;
+ const navigation={word:WORD_NAV,study:STUDY_NAV,sixteen:SIXTEEN_NAV,fifteen:FIFTEEN_NAV,madina:MADINA_NAV}[mode];
+ if(!navigation||page<(navigation.first||navigation.surahs[0].page)||page>(navigation.quranLast||navigation.total||navigation.pageCount))return null;
+ if(mode==='study'&&navigation.headers[page]?.intro)return null;
+ return [...navigation.surahs].reverse().find(s=>s.page<=page)?.number||null;
+}
+function markCurrentIndexSurah(){
+ const current=currentIndexSurah();
+ $('sheet').querySelectorAll('.list-row[data-page]').forEach(row=>{
+  const number=Number(row.dataset.surah||row.dataset.s||row.querySelector('.n')?.textContent);
+  const selected=current!==null&&number===current;row.classList.toggle('current-surah',selected);row.querySelector('.current-surah-label')?.remove();
+  if(selected){row.setAttribute('aria-current','location');const label=document.createElement('span');label.className='current-surah-label';label.textContent='Current page';row.querySelector('.names')?.appendChild(label)}else row.removeAttribute('aria-current');
+ });
+}
+const headerNavigationScreen=screen;screen=function(id){
+ headerNavigationScreen(id);if(id==='surahs'){
+  markCurrentIndexSurah();const search=$('sheet').querySelector('input.search');if(search){const filter=search.oninput;search.oninput=function(event){filter?.call(this,event);markCurrentIndexSurah()}}
+ }
+};
+
+// Keep edition selection separate from the current Surah shortcut.
+function updateHeaderReadingContext(){
+ const names={madina:'Madina Mushaf',word:'Word by word translation',tajweed:'Ayat by ayat',study:'Word to word meaning',plain:'13-line Tajweed',fifteen:'15-line Tajweed',sixteen:'16-line Tajweed'};
+ const modeLabel=$('header-mode-label');modeLabel.textContent=names[mode];modeLabel.title=names[mode];
+ const current=currentIndexSurah(),surah=current?QURAN.surahs[current-1]:null;
+ const label=$('top-label');label.textContent=surah?.name||'Source page '+page;label.title=surah?'Open Surah index · '+surah.name:'Open Surah index';
+}
+$('header-mode-label').onclick=()=>screen('modes');
+const readingContextRender=render;render=function(){readingContextRender();updateHeaderReadingContext()};
+updateHeaderReadingContext();
